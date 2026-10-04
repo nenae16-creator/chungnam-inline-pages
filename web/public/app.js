@@ -49,25 +49,25 @@
   /* ---------- assets ---------- */
   // 각 메뉴에 맞는 별도 홍보 장면. 실제 경기장·선수 사진으로 오인하지 않도록 장식 이미지로 사용한다.
   const HERO = {
-    home: "assets/campaign/chungnam-athlete-home.webp",
-    schedule: "assets/campaign/chungnam-athlete-race.webp",
-    event: "assets/mockup/heroClean-schedule.webp",
-    live: "assets/mockup/heroClean-live.webp",
-    results: "assets/mockup/heroClean-results.webp",
-    athletes: "assets/mockup/heroClean-athletes.webp",
-    athlete: "assets/mockup/heroClean-athlete.webp",
-    notices: "assets/mockup/heroClean-plain.webp",
-    participation: "assets/campaign/chungnam-participation.webp",
-    meetRules: "assets/campaign/chungnam-meet-rules.webp",
-    raceGuide: "assets/campaign/chungnam-race-guide.webp",
-    guide: "assets/campaign/chungnam-directions.webp",
-    about: "assets/campaign/chungnam-about.webp",
-    plain: "assets/mockup/heroClean-plain.webp",
+    home: "assets/campaign/home-kit.webp",
+    schedule: "assets/campaign/schedule-kit.webp",
+    event: "assets/campaign/event-kit.webp",
+    live: "assets/campaign/live-kit.webp",
+    results: "assets/campaign/results-kit.webp",
+    athletes: "assets/campaign/athletes-kit.webp",
+    athlete: "assets/campaign/profile-kit.webp",
+    notices: "assets/campaign/notices-kit.webp",
+    participation: "assets/campaign/participation-kit.webp",
+    meetRules: "assets/campaign/meet-rules-kit.webp",
+    raceGuide: "assets/campaign/race-guide-kit.webp",
+    guide: "assets/campaign/directions-kit.webp",
+    about: "assets/campaign/about-kit.webp",
+    plain: "assets/campaign/notices-kit.webp",
   };
   const heroImg = (k) => HERO[k] || HERO.plain;
   const HEROCLEAN = HERO;
   const ICON_IMG = "assets/campaign/skater-icon.png";
-  const STORY_IMG = "assets/mockup/story-photo.webp";
+  const STORY_IMG = "assets/campaign/story-kit.webp";
   const MEDAL = { g: "assets/mockup/medal-gold.png", s: "assets/mockup/medal-silver.png", b: "assets/mockup/medal-bronze.png" };
 
   /* ---------- helpers ---------- */
@@ -443,7 +443,7 @@
     const pub = notices();
     return html`<div class="ci-page ci-home">
       <section class="ci-home-hero">
-        <img src=${heroImg("home")} alt="충남 유니폼을 입은 인라인 선수들의 주행을 표현한 홍보 이미지" fetchpriority="high" />
+        <img src=${heroImg("home")} alt="가슴에 CHUNGNAM 문구가 있는 경기복을 입고 주행하는 인라인 선수들의 홍보 이미지" fetchpriority="high" />
         <${Header} onDark=${false} onMenu=${onMenu} />
         <div class="ci-home-copy">
           <h1>제1회 충청남도<br /><em>체육회장기</em></h1>
@@ -899,7 +899,7 @@
   }
   function About({ onMenu }) {
     return html`<div class="ci-page"><${SubHero} kind="about" title="대회소개" subtitle=${meetTitle()} onMenu=${onMenu} />
-      <main class="ci-content"><section class="ci-info-card ci-about"><img src=${STORY_IMG} alt="충남 유니폼을 입은 인라인 선수들의 주행을 표현한 홍보 이미지" /><h2>${meetTitle()}</h2><p>${site.campaign?.story || "충청남도 학생과 동호인이 함께하는 인라인스피드대회입니다. 출전 선수와 경기 순서, 경기 시작 시각은 공식 안내 후 공개합니다."}</p><dl><div><dt>대회명</dt><dd>${meetTitle()}</dd></div><div><dt>일정</dt><dd>${meetDate()}</dd></div><div><dt>장소</dt><dd>${meetVenue()}</dd></div><div><dt>주최·주관</dt><dd>${site.organizer?.host || "미정"}</dd></div><div><dt>후원</dt><dd>${site.organizer?.sponsors || "미정"}</dd></div></dl></section></main><${Footer} /></div>`;
+      <main class="ci-content"><section class="ci-info-card ci-about"><img src=${STORY_IMG} alt="가슴에 CHUNGNAM 문구가 있는 경기복을 입고 주행하는 인라인 선수들의 홍보 이미지" /><h2>${meetTitle()}</h2><p>${site.campaign?.story || "충청남도 학생과 동호인이 함께하는 인라인스피드대회입니다. 출전 선수와 경기 순서, 경기 시작 시각은 공식 안내 후 공개합니다."}</p><dl><div><dt>대회명</dt><dd>${meetTitle()}</dd></div><div><dt>일정</dt><dd>${meetDate()}</dd></div><div><dt>장소</dt><dd>${meetVenue()}</dd></div><div><dt>주최·주관</dt><dd>${site.organizer?.host || "미정"}</dd></div><div><dt>후원</dt><dd>${site.organizer?.sponsors || "미정"}</dd></div></dl></section></main><${Footer} /></div>`;
   }
   function NotFound({ onMenu }) {
     return html`<div class="ci-page"><${SubHero} kind="plain" title="정보를 찾을 수 없습니다" subtitle="" onMenu=${onMenu} />
