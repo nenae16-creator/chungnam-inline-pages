@@ -779,3 +779,22 @@ body[data-route="race-guide"] .ci-sub-sub { max-width: none; }
 .ci-foot-social a { color: inherit; font-size: 11px; text-decoration: none; opacity: .85; overflow-wrap: anywhere; }
 .ci-rules-page dt, .ci-rules-table th { white-space: nowrap; }
 .ci-rules-page dl > div { gap: 12px; }
+
+/* ---------- 오시는 길: 지도·교통 ---------- */
+.ci-venue-map { margin-top: 14px; height: 260px; border-radius: 14px; overflow: hidden; border: 1px solid #cdd9e8; background: #eef3fb; z-index: 0; position: relative; }
+.ci-venue-map .leaflet-tooltip { font-family: inherit; font-weight: 800; color: var(--navy); }
+.ci-map-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.ci-map-link { flex: 1 1 calc(50% - 8px); display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 12px; border-radius: 12px; font-size: 14px; font-weight: 800; text-decoration: none; background: #eaf1fc; color: var(--navy); border: 1px solid #d3e0f2; }
+.ci-map-link.is-naver { background: #03c75a; color: #fff; border-color: #03c75a; }
+.ci-map-link.is-kakao { background: #fee500; color: #191919; border-color: #f2d900; }
+.ci-map-link.is-tmap { background: #1f4ee8; color: #fff; border-color: #1f4ee8; }
+.ci-guide-note { margin: 10px 0 0; font-size: 12px; line-height: 1.55; color: #5f7593; }
+.ci-guide-text { margin: 6px 0 0; font-size: 14px; line-height: 1.6; color: #304a6b; }
+.ci-guide-text img { width: 100%; border-radius: 12px; }
+.ci-transit { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 12px; }
+.ci-transit li { padding: 12px 14px; border-radius: 12px; background: #f3f7fd; border: 1px solid #e0e9f5; }
+.ci-transit strong { display: block; font-size: 14px; font-weight: 800; color: var(--navy); }
+.ci-transit p { margin: 4px 0 0; font-size: 13px; line-height: 1.6; color: #3f5878; }
+
+/* 충남 홈 히어로: 생성 이미지(인라인 레이스) — 하늘 여백을 위에 두고 선수는 오른쪽 */
+.ci-home .ci-home-hero > img { object-position: 60% 42% !important; }

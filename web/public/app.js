@@ -49,7 +49,7 @@
   /* ---------- assets (목업 크롭) ---------- */
   // 선수 사진(순수 사진 asset). 손글씨/워터마크/타이틀은 코드 텍스트로 별도 구현.
   const HERO = {
-    home: "assets/mockup/heroClean-home.jpg", schedule: "assets/mockup/heroC-schedule.jpg",
+    home: "assets/mockup/hero-home.webp", schedule: "assets/mockup/heroC-schedule.jpg",
     event: "assets/mockup/heroC-live.jpg", live: "assets/mockup/heroC-live.jpg",
     results: "assets/mockup/heroC-results.jpg", athletes: "assets/mockup/heroC-athletes.jpg",
     athlete: "assets/mockup/heroClean-athlete.jpg", plain: "assets/mockup/heroC-schedule.jpg",
@@ -404,7 +404,7 @@
     const pub = notices();
     return html`<div class="ci-page ci-home">
       <section class="ci-home-hero">
-        <img src=${heroImg("home")} alt="인라인 스피드 경기 현장" fetchpriority="high" />
+        <img src=${heroImg("home")} alt="인라인 스피드 경기 이미지(생성 이미지)" fetchpriority="high" />
         <${Header} onDark=${false} onMenu=${onMenu} />
         <div class="ci-home-copy">
           <h1>제1회 충청남도<br /><em>체육회장기</em></h1>
@@ -785,10 +785,67 @@
         <iframe class="ci-judge-frame" title="심판 기록 입력" src="../judge/?embedded=1"></iframe>
       </main></div>`;
   }
+  // 오시는 길: Leaflet + OpenStreetMap(키 불필요)을 필요할 때만 불러온다. 실패하면 지도 앱 링크만 남는다.
+  const LEAFLET = "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/";
+  let leafletLoading = null;
+  function loadLeaflet() {
+    if (window.L) return Promise.resolve(window.L);
+    if (leafletLoading) return leafletLoading;
+    leafletLoading = new Promise((resolve, reject) => {
+      const css = document.createElement("link"); css.rel = "stylesheet"; css.href = LEAFLET + "leaflet.css"; document.head.appendChild(css);
+      const js = document.createElement("script"); js.src = LEAFLET + "leaflet.js"; js.async = true;
+      js.onload = () => resolve(window.L); js.onerror = () => { leafletLoading = null; reject(new Error("leaflet")); };
+      document.head.appendChild(js);
+    });
+    return leafletLoading;
+  }
+  function VenueMap({ v }) {
+    const ref = useRef(null);
+    const [failed, setFailed] = useState(false);
+    useEffect(() => {
+      if (!(v.lat && v.lng)) return undefined;
+      let map = null, alive = true;
+      loadLeaflet().then((L) => {
+        if (!alive || !ref.current) return;
+        map = L.map(ref.current, { scrollWheelZoom: false, tap: false }).setView([v.lat, v.lng], 16);
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>' }).addTo(map);
+        L.circleMarker([v.lat, v.lng], { radius: 11, color: "#ffffff", weight: 3, fillColor: "#0b63f6", fillOpacity: 1 }).addTo(map).bindTooltip(v.name, { permanent: true, direction: "top", offset: [0, -12] });
+      }).catch(() => alive && setFailed(true));
+      return () => { alive = false; if (map) map.remove(); };
+    }, [v.lat, v.lng]);
+    if (!(v.lat && v.lng) || failed) return html`<div class="ci-map-ph"><${Ic} n="map" /><p>${failed ? "지도를 불러오지 못했습니다. 아래 지도 앱 버튼을 이용하세요." : "지도 위치 미등록"}</p></div>`;
+    return html`<div class="ci-venue-map" ref=${ref} role="img" aria-label=${v.name + " 위치 지도"}></div>`;
+  }
   function Guide({ onMenu }) {
     const v = site.venue || {};
+    const name = v.name || meetVenue();
+    const q = encodeURIComponent(v.mapQuery || name);
+    const nq = encodeURIComponent(name);
+    const links = v.lat && v.lng ? [
+      ["네이버지도", "https://map.naver.com/p/search/" + q, "naver"],
+      ["카카오맵", `https://map.kakao.com/link/map/${nq},${v.lat},${v.lng}`, "kakao"],
+      ["카카오 길찾기", `https://map.kakao.com/link/to/${nq},${v.lat},${v.lng}`, "kakao"],
+      ["T맵 (앱)", `tmap://route?goalname=${nq}&goalx=${v.lng}&goaly=${v.lat}`, "tmap"],
+      ["OpenStreetMap", `https://www.openstreetmap.org/?mlat=${v.lat}&mlon=${v.lng}#map=17/${v.lat}/${v.lng}`, "osm"],
+    ] : [];
     return html`<div class="ci-page"><${SubHero} kind="plain" title="오시는 길" subtitle="경기장 위치와 교통 정보를 확인하세요." onMenu=${onMenu} />
-      <main class="ci-content"><section class="ci-info-card"><div class="ci-guide-head"><${Ic} n="pin" cls="b" /><div><strong>${v.name || meetVenue()}</strong><small>${v.address || "세부 장소는 확정 후 안내합니다."}</small></div></div><div class="ci-map-ph"><${Ic} n="map" /><p>경기장 배치도 준비 중</p></div></section></main><${Footer} /></div>`;
+      <main class="ci-content">
+        <section class="ci-info-card"><div class="ci-guide-head"><${Ic} n="pin" cls="b" /><div><strong>${name}</strong><small>${v.address || "세부 장소는 확정 후 안내합니다."}</small></div></div>
+          <${VenueMap} v=${v} />
+          ${links.length ? html`<div class="ci-map-links">${links.map(([label, href, k]) => html`<a key=${k + label} class=${"ci-map-link is-" + k} href=${href} target=${href.startsWith("tmap:") ? undefined : "_blank"} rel="noopener">${label}</a>`)}</div>` : null}
+          ${v.coordNote ? html`<p class="ci-guide-note">${v.coordNote} T맵 버튼은 앱이 설치된 휴대폰에서만 열립니다.</p>` : null}
+        </section>
+        <section class="ci-info-card"><h2>주소</h2><dl class="ci-dl">
+          ${v.roadAddress ? html`<div><dt>도로명</dt><dd>${v.roadAddress}${v.postcode ? ` (우 ${v.postcode})` : ""}</dd></div>` : null}
+          ${v.jibunAddress ? html`<div><dt>지번</dt><dd>${v.jibunAddress}</dd></div>` : null}
+          ${v.addressNote ? html`<div><dt>참고</dt><dd>${v.addressNote}</dd></div>` : null}
+        </dl></section>
+        ${(v.transit || []).length ? html`<section class="ci-info-card"><h2>대중교통 · 택시</h2><ul class="ci-transit">${v.transit.map((t) => html`<li key=${t.title}><strong>${t.title}</strong><p>${t.body}</p></li>`)}</ul></section>` : null}
+        <section class="ci-info-card"><h2>주차</h2><p class="ci-guide-text">${v.parking || "미확인"}</p></section>
+        ${v.contact ? html`<section class="ci-info-card"><h2>문의</h2><p class="ci-guide-text">${v.contact}</p></section>` : null}
+        <section class="ci-info-card"><h2>경기장 배치도</h2><p class="ci-guide-text">${v.diagram ? html`<img src=${v.diagram} alt="경기장 배치도" />` : "미등록"}</p>
+          ${v.sources ? html`<p class="ci-guide-note">출처 · ${v.sources}</p>` : null}</section>
+      </main><${Footer} /></div>`;
   }
   function About({ onMenu }) {
     return html`<div class="ci-page"><${SubHero} kind="plain" title="대회소개" subtitle=${meetTitle()} onMenu=${onMenu} />
