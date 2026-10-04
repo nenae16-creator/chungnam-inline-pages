@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#062b63">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="충남인라인">
+  <title>제1회 충청남도체육회장기 인라인스피드대회</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&display=swap" rel="stylesheet">
+  <link rel="icon" href="mark.png" type="image/png">
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="app.css?v=h2">
+  <link rel="stylesheet" href="campaign-ops.css?v=h12">
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-row">
+      <a class="brand" href="?view=board" aria-label="대회 메인화면으로 이동">
+        <img class="logo" src="mark.png" alt="충청남도롤러스포츠연맹 마크" />
+        <div>
+          <h1 id="meet-title">제1회 충청남도체육회장기 인라인스피드대회</h1>
+          <p><span id="meet-when">2026. 10. 25. (일) · 시작 시각 미정</span> · <span id="updated">기록 입력 전</span></p>
+        </div>
+      </a>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div id="share-box"><button class="btn gold" id="start-share">공개 공유 시작</button></div>
+        <div class="live-pill"><span class="dot"></span> <span id="live-label">LIVE</span> <span id="clock"></span></div>
+      </div>
+      <button class="menu-toggle" id="menu-toggle" type="button" aria-label="메뉴 열기" aria-expanded="false" aria-controls="main-menu"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    </div>
+    <nav class="nav" id="main-menu" aria-label="주 메뉴" hidden>
+      <button data-view="board" class="active">운영 현황</button>
+      <button data-view="pair">경기 편성</button>
+      <button data-view="rank">기록·순위</button>
+      <button data-view="champ">최강전</button>
+      <button data-view="medals">클럽 메달</button>
+      <button data-view="athletes">선수 명단</button>
+      <button data-view="operators">심판 계정</button>
+      <button data-view="gallery">대회 사진</button>
+      <button data-view="sync">실시간 동기화</button>
+      <button data-view="judge">통합 기록실</button>
+    </nav>
+  </header>
+  <main class="wrap" id="view">
+    <div class="card"><p class="muted">불러오는 중… 같은 폴더에 data.js, app.js, app.css 가 있는지 확인하세요.</p></div>
+  </main>
+  <div class="modal-bg" id="modal"></div>
+  <div class="toast" id="toast"></div>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../shared/live-config.js"></script>
+  <script>
+    var liveConfig = window.CHUNGNAM_LIVE_CONFIG || {};
+    window.SUPABASE_URL = liveConfig.supabaseUrl || "";
+    window.SUPABASE_ANON_KEY = liveConfig.supabaseAnonKey || "";
+  </script>
+  <script src="shared/sync.js"></script>
+  <script src="shared/adapter-supabase.js"></script>
+  <script src="shared/adapter-memory.js"></script>
+  <script src="shared/adapter-broadcast.js"></script>
+  <script src="shared/legacy-bridge.js"></script>
+  <script src="../public/catalog-data.js?v=market-1"></script>
+  <script src="../public/catalog.js?v=cat1"></script>
+  <link rel="stylesheet" href="../gallery.css">
+  <script src="../gallery-cloud.js"></script>
+  <script src="../gallery.js"></script>
+  <script src="app.js?v=h5"></script>
+  <script>
+    window.addEventListener("error", function (e) {
+      var v = document.getElementById("view");
+      if (v && !window.MEET_DATA) {
+        v.innerHTML = '<div class="card"><h2>파일을 같이 열어야 합니다</h2><p>index.html 만 옮기지 말고 data.js, app.js, app.css 를 같은 폴더에 두고 여세요.</p></div>';
+      }
+    });
+  </script>
+</body>
+</html>

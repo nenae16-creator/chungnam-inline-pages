@@ -1,0 +1,105 @@
+/* =====================================================================
+ * theme.css — 충남 인라인 통합 디자인 시스템 (SSOT)
+ * 목업(design/*.png)에서 추출한 정본 토큰. 공개 사이트가 이미 사용하는
+ * 팔레트(#0b66f0 / #082d67)를 그대로 정본화하여 관리·심판·전광판까지
+ * 같은 브랜드로 정렬한다. 기존 스타일을 덮지 않는 "추가형" 파일이다.
+ * ===================================================================== */
+:root {
+  /* Brand blues */
+  --thm-brand: #0b66f0;
+  --thm-brand-strong: #0b62ee;
+  --thm-brand-2: #108dff;
+  --thm-brand-soft: #e6f0ff;
+  --thm-brand-softer: #f2f7ff;
+  --thm-navy: #082d67;
+  --thm-navy-deep: #041f49;
+
+  /* Ink / neutrals */
+  --thm-ink: #0c2f62;
+  --thm-ink-2: #0f1b2d;
+  --thm-muted: #5f7897;
+  --thm-line: #dbe8f4;
+  --thm-bg: #eef3fb;
+  --thm-soft: #f5faff;
+  --thm-card: #ffffff;
+
+  /* Status */
+  --thm-live: #ef4444;
+  --thm-green: #13935e;
+  --thm-green-bg: #dff9ed;
+  --thm-blue-bg: #dff1ff;
+  --thm-blue-tx: #0875d4;
+  --thm-amber: #ae7400;
+  --thm-amber-bg: #fff3d8;
+  --thm-danger: #bf3b3b;
+  --thm-danger-bg: #ffe4e4;
+
+  /* Medals */
+  --thm-gold: #f0b436;
+  --thm-silver: #b8c0cc;
+  --thm-bronze: #cb7b3a;
+
+  /* Form */
+  --thm-radius: 20px;
+  --thm-radius-sm: 14px;
+  --thm-radius-pill: 999px;
+  --thm-shadow: 0 18px 44px rgba(27, 76, 126, 0.10);
+  --thm-shadow-sm: 0 8px 20px rgba(11, 102, 240, 0.14);
+  --thm-grad: linear-gradient(115deg, #0b62ee, #108dff);
+  --thm-grad-navy: linear-gradient(120deg, #082d67, #0e3c86);
+  --thm-font: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+
+/* ---- Shared component helpers (opt-in classes) --------------------- */
+.thm-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; padding: 0 20px; border: 0; border-radius: var(--thm-radius-pill);
+  background: var(--thm-grad); color: #fff; font-family: var(--thm-font);
+  font-size: 15px; font-weight: 900; cursor: pointer; box-shadow: var(--thm-shadow-sm);
+  text-decoration: none;
+}
+.thm-btn.is-ghost { background: #fff; color: var(--thm-brand); border: 1px solid var(--thm-line); box-shadow: none; }
+.thm-btn.is-green { background: linear-gradient(115deg, #17a866, #1fbf76); box-shadow: none; }
+.thm-btn.is-danger { background: linear-gradient(115deg, #e23b3b, #f25757); box-shadow: none; }
+.thm-btn.is-slate { background: #eef2f8; color: #4a5b74; box-shadow: none; }
+
+.thm-card {
+  border: 1px solid var(--thm-line); border-radius: var(--thm-radius);
+  background: var(--thm-card); box-shadow: var(--thm-shadow);
+}
+
+.thm-chip {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 36px; padding: 0 16px; border: 0; border-radius: var(--thm-radius-pill);
+  background: #eef2f8; color: #5b7693; font-family: var(--thm-font);
+  font-size: 13px; font-weight: 800; cursor: pointer; white-space: nowrap;
+}
+.thm-chip[aria-pressed="true"], .thm-chip.is-active { background: var(--thm-grad); color: #fff; }
+
+.thm-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 30px; padding: 0 13px; border-radius: var(--thm-radius-pill);
+  background: #edf3f7; color: #56718d; font-size: 11px; font-weight: 900; white-space: nowrap;
+}
+.thm-badge.is-live { background: var(--thm-live); color: #fff; }
+.thm-badge.is-current { background: var(--thm-green-bg); color: var(--thm-green); }
+.thm-badge.is-confirmed { background: var(--thm-blue-bg); color: var(--thm-blue-tx); }
+.thm-badge.is-pending { background: var(--thm-amber-bg); color: var(--thm-amber); }
+.thm-badge.is-penalty { background: var(--thm-danger-bg); color: var(--thm-danger); }
+
+/* Rank / medal token block (1 gold, 2 silver, 3 bronze, others neutral) */
+.thm-rank {
+  display: inline-grid; place-items: center; width: 30px; height: 30px;
+  border-radius: 999px; background: #e9eef6; color: #47597a; font-weight: 900; font-size: 14px;
+}
+.thm-rank.r1 { background: var(--thm-gold); color: #4a3400; }
+.thm-rank.r2 { background: var(--thm-silver); color: #33383f; }
+.thm-rank.r3 { background: var(--thm-bronze); color: #fff; }
+
+/* LIVE pulse dot */
+.thm-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 0 currentColor; animation: thm-pulse 1.6s infinite; }
+@keyframes thm-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.45); }
+  70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}

@@ -1,0 +1,1396 @@
+/* board.css — 공개 전광판
+ * 대형 화면(stage)과 관중 폰(phone)이 같은 규칙을 공유하고,
+ * 크기 토큰만 모드별로 갈아 끼운다.
+ *
+ * 색: ui-ux-pro-max --domain color "dark mode contrast" 의
+ *     "Digital Signage / Kiosk" 프로파일을 그대로 채택.
+ *     (배경 #020617 / 카드 #0E1223 / 전경 #F8FAFC / 테두리 #334155 / 강조 #EF4444)
+ *     여기에 계측 표기용 시안과 시상 금·은·동을 더했다.
+ * 폰트: 대회장 회선이 끊겨도 떠야 하므로 웹폰트를 쓰지 않는다. 전부 시스템 폰트.
+ */
+
+:root {
+  /* ── 팔레트: 충남 인라인 브랜드 시스템 정렬 ───────────────────── */
+  /* 라이트 테마 — 공개 사이트/목업 디자인과 통일 (흰 카드 · 네이비 텍스트 · 파랑 강조) */
+  --bg: #eef3fb; /* 목업 페이지 배경 */
+  --surface: #ffffff;
+  --surface-2: #f5f9fe;
+  --surface-3: #e9f1ff;
+  --fg: #0c2f62; /* 네이비 텍스트 */
+  --muted: #5f7897;
+  --muted-dim: #93a3b8;
+  --border: #dce8f4;
+  --border-soft: #eef2f7;
+
+  --accent: #ef4444; /* 브랜드 LIVE 빨강 */
+  --live: #0b66f0; /* 브랜드 파랑 (진행 게이지) */
+  --gold: #f0b436; /* 브랜드 금메달 */
+  --silver: #b8c0cc; /* 브랜드 은메달 */
+  --bronze: #cb7b3a; /* 브랜드 동메달 */
+  --prov: #ae7400; /* 잠정 (앰버 텍스트) */
+  --dnx: #bf3b3b;
+  --ok: #13935e;
+
+  /* 레인 표식 — 실제 트랙 레인 라인처럼. 색은 보조 신호일 뿐,
+     레인 번호는 언제나 숫자로도 찍힌다. */
+  --lane-1: #22d3ee;
+  --lane-2: #a78bfa;
+  --lane-3: #fbbf24;
+  --lane-4: #4ade80;
+  --lane-5: #f472b6;
+  --lane-6: #60a5fa;
+  --lane-7: #fb923c;
+  --lane-8: #94a3b8;
+
+  /* ── 크기 (기본 = 폰) ─────────────────────────────────── */
+  --sp: 8px;
+  --pad: 12px;
+  --radius: 10px;
+  --row-h: 56px;
+  --fs-row: 17px;
+  --fs-time: 22px;
+  --fs-lane: 15px;
+  --fs-label: 12px;
+  --fs-title: 17px;
+  --fs-event: 20px;
+
+  /* ── 모션 토큰 ────────────────────────────────────────── */
+  --t-fast: 140ms;
+  --t-mid: 240ms;
+  --t-move: 380ms; /* 순위 이동 */
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.45, 0.05, 0.55, 0.95);
+
+  --font: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    system-ui, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR",
+    "맑은 고딕", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono", "Roboto Mono",
+    Menlo, Consolas, "D2Coding", "DejaVu Sans Mono", monospace;
+
+  color-scheme: dark;
+}
+
+/* 대형 화면: 멀리서 읽히도록 전부 키운다 */
+[data-mode="stage"] {
+  --sp: 10px;
+  --pad: 18px;
+  --radius: 14px;
+  --row-h: clamp(58px, 7.2vh, 92px);
+  --fs-row: clamp(20px, 2.1vh, 34px);
+  --fs-time: clamp(26px, 3.0vh, 46px);
+  --fs-lane: clamp(17px, 1.8vh, 28px);
+  --fs-label: clamp(12px, 1.25vh, 18px);
+  --fs-title: clamp(15px, 1.5vh, 22px);
+  --fs-event: clamp(24px, 3.0vh, 46px);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* .panel / .tabs 등에 display 를 지정해 두었으므로 [hidden] 을 이겨 버린다.
+   숨김은 언제나 이긴다. */
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* 트랙 바닥 결 — 아주 옅은 대각선. 대비를 해치지 않는 선에서만. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(1200px 620px at 78% -10%, rgba(34, 211, 238, 0.07), transparent 60%),
+    radial-gradient(900px 520px at 5% 105%, rgba(239, 68, 68, 0.06), transparent 62%),
+    repeating-linear-gradient(
+      104deg,
+      rgba(148, 163, 184, 0.035) 0 1px,
+      transparent 1px 46px
+    );
+}
+
+.app {
+  position: relative;
+  z-index: 1;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+/* 대형 화면은 뷰포트에 딱 맞춘다(스크롤·넘침 없음). 레인 목록이 남는 세로를 채운다. */
+[data-mode="stage"] .app {
+  height: 100%;
+  overflow: hidden;
+}
+[data-mode="stage"] .main {
+  min-height: 0;
+}
+
+/* 숫자는 어디서든 자릿수가 흔들리지 않게 */
+.num,
+.time,
+.lane-no,
+.place,
+.bib,
+.clock,
+.gauge-text {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.01em;
+}
+
+/* ══════════════════════════════════════════════════ 헤더 */
+
+.hd {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--sp);
+  align-items: center;
+  padding: calc(var(--pad) * 0.85) var(--pad);
+  background: linear-gradient(180deg, rgba(8, 45, 103, 0.98), rgba(5, 20, 36, 0.95));
+  border-bottom: 3px solid #0b66f0;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  backdrop-filter: blur(8px);
+}
+
+.hd-meet {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--sp) * 1.1);
+}
+.hd-home-link {
+  flex: none;
+  display: inline-flex;
+  border-radius: 11px;
+}
+.hd-mark {
+  flex: none;
+  width: 48px;
+  height: 42px;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 11px;
+  padding: 4px;
+  box-shadow: 0 4px 14px rgba(4, 24, 58, 0.12);
+}
+.hd-meet-copy {
+  min-width: 0;
+}
+
+.hd-title {
+  font-size: var(--fs-title);
+  font-weight: 700;
+  color: var(--fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hd-sub {
+  font-size: var(--fs-label);
+  color: var(--muted);
+  display: flex;
+  gap: calc(var(--sp) * 1.2);
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.hd-right {
+  display: flex;
+  align-items: center;
+  gap: var(--sp);
+  flex-shrink: 0;
+}
+
+.clock {
+  font-size: var(--fs-event);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--fg);
+}
+[data-mode="phone"] .clock {
+  font-size: 18px;
+}
+
+/* 시연 데이터 경고 — 눈에 띄되 기록을 가리지 않는다 */
+.demo-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.14);
+  border: 1px solid var(--prov);
+  color: var(--prov);
+  font-size: var(--fs-label);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.demo-flag .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--prov);
+}
+
+/* 기록 대기 — 경고가 아니라 상태 안내다. 시연 배지와 색이 겹치면 안 된다. */
+.wait-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(16, 141, 255, 0.12);
+  border: 1px solid rgba(16, 141, 255, 0.55);
+  color: #8ddcff;
+  font-size: var(--fs-label);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.wait-flag .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #108dff;
+  animation: pulse 2s var(--ease-in-out) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wait-flag .dot {
+    animation: none;
+  }
+}
+
+/* ══════════════════════════════════════════════ 종목 헤드 */
+
+.evbar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--sp);
+  align-items: center;
+  padding: calc(var(--pad) * 0.7) var(--pad);
+  border-bottom: 1px solid var(--border-soft);
+  background: linear-gradient(90deg, rgba(13, 27, 51, 0.8), rgba(8, 20, 40, 0.6));
+}
+
+.ev-no {
+  font-family: var(--mono);
+  font-size: var(--fs-event);
+  font-weight: 700;
+  line-height: 1;
+  color: #0b66f0;
+  padding-right: calc(var(--sp) * 1.2);
+  border-right: 2px solid #0b66f0;
+}
+
+.ev-main {
+  min-width: 0;
+}
+
+.ev-name {
+  font-size: var(--fs-event);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ev-meta {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+/* ── 진행 게이지: 계측 장비의 눈금자 ── */
+.gauge {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 132px;
+}
+[data-mode="stage"] .gauge {
+  min-width: 220px;
+}
+
+.gauge-text {
+  font-size: var(--fs-label);
+  color: var(--muted);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp);
+}
+[data-mode="stage"] .gauge-text {
+  font-size: var(--fs-title);
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.gauge-track {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+[data-mode="stage"] .gauge-track {
+  height: 12px;
+}
+
+.gauge-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0b66f0, #108dff);
+  transition: width var(--t-mid) var(--ease-out);
+  box-shadow: 0 0 16px rgba(11, 102, 240, 0.4);
+}
+
+.gauge-ticks {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 calc(10% - 1px),
+    rgba(2, 6, 23, 0.65) calc(10% - 1px) 10%
+  );
+}
+
+/* ══════════════════════════════════════════════════ 배지 */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: var(--fs-label);
+  font-weight: 700;
+  line-height: 1.6;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.b-live {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #fff;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+}
+.b-live .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  animation: pulse 1.6s var(--ease-in-out) infinite;
+}
+.b-champ {
+  background: rgba(251, 191, 36, 0.14);
+  border-color: rgba(251, 191, 36, 0.5);
+  color: var(--gold);
+}
+.b-final {
+  background: rgba(34, 211, 238, 0.13);
+  border-color: rgba(34, 211, 238, 0.45);
+  color: var(--live);
+}
+.b-heat {
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--muted);
+}
+.b-done {
+  background: rgba(74, 222, 128, 0.13);
+  border-color: rgba(74, 222, 128, 0.45);
+  color: var(--ok);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* ── 잠정 표기 ──────────────────────────────────────────
+   심판 확정 전 기록임을 밝히는 유일한 장치. 색만이 아니라 글자로도 말한다.
+   테두리를 점선으로 둔 것은 "아직 도장이 안 찍혔다"는 뜻을 형태로도 주기 위함. */
+.prov {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px;
+  border-radius: 5px;
+  border: 1px dashed var(--prov);
+  background: rgba(240, 180, 54, 0.1);
+  color: var(--prov);
+  font-size: var(--fs-label);
+  font-weight: 700;
+  line-height: 1.55;
+  white-space: nowrap;
+}
+
+/* ══════════════════════════════════════════════ 레이아웃 */
+
+.main {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  gap: var(--sp);
+  padding: var(--sp) var(--pad) var(--pad);
+}
+
+[data-mode="stage"] .main {
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  overflow: hidden;
+}
+
+[data-mode="stage"] .col-side {
+  display: grid;
+  grid-template-rows: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: var(--sp);
+  min-height: 0;
+}
+
+[data-mode="phone"] .main {
+  grid-template-columns: minmax(0, 1fr);
+  padding-bottom: calc(var(--pad) + env(safe-area-inset-bottom, 0px));
+}
+
+/* 폰에서는 패널이 세로로 쌓이고, 스크롤은 페이지가 맡는다
+   (패널 안에 또 스크롤을 만들면 손가락이 어디를 밀고 있는지 알 수 없다) */
+[data-mode="phone"] .col-side {
+  display: contents;
+}
+[data-mode="phone"] .panel {
+  overflow: visible;
+}
+[data-mode="phone"] .panel-body {
+  overflow: visible;
+}
+[data-mode="phone"] .panel-hd {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: linear-gradient(180deg, #1b2137, #131931);
+}
+[data-mode="phone"] .main {
+  align-content: start;
+}
+
+/* ── 좁은 화면에서 가로로 삐져나가지 않게 ──────────────────
+   가로 스크롤은 절대 만들지 않는다. 줄일 것은 줄이고 접을 것은 접는다. */
+
+[data-mode="phone"] .hd {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+[data-mode="phone"] .hd-right {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+[data-mode="phone"] .demo-flag {
+  font-size: 11px;
+  padding: 3px 8px;
+}
+[data-mode="phone"] .demo-flag .long {
+  display: none;
+}
+[data-mode="phone"] .hd-sub {
+  gap: 8px;
+}
+
+/* 종목 헤드: 이름 아래로 게이지를 통째로 내린다 */
+[data-mode="phone"] .evbar {
+  grid-template-columns: auto minmax(0, 1fr);
+  row-gap: 8px;
+}
+[data-mode="phone"] .gauge {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+[data-mode="phone"] .ev-name {
+  white-space: normal;
+  line-height: 1.2;
+}
+
+/* 레인 행: 안내선 칸을 빼고 이름 칸이 남는 폭을 전부 흡수하게 */
+[data-mode="phone"] .lane {
+  grid-template-columns: auto auto minmax(0, 1fr) 0 auto;
+  gap: var(--sp);
+}
+[data-mode="phone"] .leader {
+  display: none;
+}
+/* 기록과 잠정 표기를 세로로 쌓아 폭을 아낀다 */
+[data-mode="phone"] .rec {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+[data-mode="phone"] .rec-flags {
+  flex-direction: row;
+  min-width: 0;
+}
+[data-mode="phone"] .rank-row {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+/* 푸터: 안내 문구 한 줄, 버튼 한 줄 */
+[data-mode="phone"] .ft {
+  row-gap: 8px;
+}
+[data-mode="phone"] .ft-spacer {
+  flex-basis: 100%;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.panel-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp);
+  padding: calc(var(--pad) * 0.6) var(--pad);
+  border-bottom: 1px solid var(--border-soft);
+  background: linear-gradient(180deg, rgba(35, 43, 69, 0.6), transparent);
+}
+
+.panel-t {
+  font-size: var(--fs-title);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: var(--sp);
+  min-width: 0;
+}
+
+.panel-t .kicker {
+  font-size: var(--fs-label);
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-3) transparent;
+}
+.panel-body::-webkit-scrollbar {
+  width: 8px;
+}
+.panel-body::-webkit-scrollbar-thumb {
+  background: var(--surface-3);
+  border-radius: 4px;
+}
+
+/* ══════════════════════════════════ 레인 목록 (트랙 직선구간) */
+
+.lanes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+/* 대형 화면의 레인 목록은 패널 높이를 레인끼리 똑같이 나눠 갖는다.
+ *
+ * 규칙은 둘뿐이다.
+ *   1. 언제나 **위에서부터** 채운다. 화면 위쪽은 멀리서 제일 잘 보이는 자리라
+ *      비워 두면 안 되고, 첫 행의 위치가 고정돼야 조가 바뀔 때 튀지 않는다.
+ *   2. 남는 세로 공간은 행 높이로 균등하게 돌려준다. 빈 칸으로 남기지 않는다.
+ *
+ * 실제 페어링의 조 인원은 1~4명(최강전 최대 6명)이다. 1명짜리 조가 10개나 되는데
+ * 그런 조에서는 행만 늘려도 글자가 그대로라 여전히 허전하다. 그래서 작은 조에만
+ * 글자 배율을 올린다(`data-count` 는 board.js 가 넣는다).
+ *
+ * ★ `data-count` 는 **지금 조의 인원이 아니라 이 종목에서 가장 큰 조의 인원**이다.
+ *   조마다 기준을 잡으면 자동 순환으로 조가 넘어갈 때 글자가 출렁인다. 실제 페어링에
+ *   [3,2,2]·[3,1] 처럼 인원이 섞인 종목이 6개 있어서 반드시 생긴다.
+ *   종목 단위로 고정하면 배율은 종목이 바뀔 때만 변하고, 그때는 머리글이 통째로 바뀐다.
+ *   작은 조는 배율 대신 **행 높이**로 공간을 쓴다 — 빈 칸은 어느 경우에도 안 남는다.
+ */
+[data-mode="stage"] .lanes {
+  display: flex;
+  flex-direction: column;
+  /* 화면 세로를 레인끼리 똑같이 나눠 빈틈 없이 채운다(위에서부터). 각 행은 이름+소속의
+     두 줄을 세로 가운데에 담아, 조 인원이 적어도 허전하지 않다. */
+  justify-content: stretch;
+  min-height: 100%;
+  height: 100%;
+  --lane-scale: 1;
+}
+[data-mode="stage"] .lane {
+  flex: 1 1 0;
+  min-height: var(--row-h);
+}
+[data-mode="stage"] .lane > .who {
+  align-self: center;
+}
+
+/* 조 인원이 적을수록 글자를 키워 넓어진 행을 채운다. data-count 는 이 종목에서 가장 큰
+   조의 인원 — 자동 순환 때 글자가 출렁이지 않게 종목 단위로 고정. */
+[data-mode="stage"] .lanes[data-count="1"] {
+  --lane-scale: 1.55;
+}
+[data-mode="stage"] .lanes[data-count="2"] {
+  --lane-scale: 1.3;
+}
+[data-mode="stage"] .lanes[data-count="3"] {
+  --lane-scale: 1.15;
+}
+[data-mode="stage"] .lanes[data-count="4"] {
+  --lane-scale: 1.06;
+}
+
+[data-mode="stage"] .lane .who-name {
+  font-size: calc(var(--fs-row) * var(--lane-scale));
+}
+[data-mode="stage"] .lane .time {
+  font-size: calc(var(--fs-time) * var(--lane-scale));
+}
+[data-mode="stage"] .lane .lane-no,
+[data-mode="stage"] .lane .place {
+  font-size: calc(var(--fs-lane) * var(--lane-scale));
+}
+
+.lane {
+  position: relative;
+  display: grid;
+  /* 레인 / 순위 / 선수 / 안내선 / 기록 */
+  grid-template-columns: auto auto minmax(0, auto) minmax(1ch, 1fr) auto;
+  align-items: center;
+  gap: calc(var(--sp) * 1.1);
+  min-height: var(--row-h);
+  padding: calc(var(--sp) * 0.6) var(--pad);
+  /* 레인 사이의 점선 = 트랙 레인 라인 */
+  border-top: 1px dashed rgba(148, 163, 184, 0.22);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--lane-c, var(--lane-8)) 9%, transparent) 0,
+    transparent 34%
+  );
+  will-change: transform;
+}
+.lane:first-child {
+  border-top: 0;
+}
+
+/* 레인 표식 = 트랙 바닥에 칠해진 레인 그 자체.
+   행 높이만큼 꽉 찬 세로 띠라서, 옆의 둥근 순위 메달과 절대 헷갈리지 않는다. */
+.lane-no {
+  position: relative;
+  align-self: stretch;
+  width: 2.2em;
+  margin-block: calc(var(--sp) * -0.6);
+  display: grid;
+  place-items: center;
+  font-size: var(--fs-lane);
+  font-weight: 800;
+  border-radius: 3px;
+  color: var(--bg);
+  background: var(--lane-c, var(--lane-8));
+  box-shadow: inset 0 0 0 1px rgba(2, 6, 23, 0.25),
+    inset 0 -3px 0 rgba(2, 6, 23, 0.22);
+}
+
+/* 순위 자리 — 숫자든 미완주 코드든 여기 한 칸에만 들어간다.
+   둥근 알약 = 시상, 각진 띠 = 레인. 형태로 역할이 갈린다. */
+.place {
+  min-width: 2.7em;
+  height: 2.15em;
+  padding: 0 0.5em;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font-size: var(--fs-lane);
+  font-weight: 800;
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  color: var(--muted);
+}
+.place.p1 {
+  background: linear-gradient(180deg, #f5d87b, var(--gold));
+  color: #4a3400;
+  border-color: var(--gold);
+  box-shadow: 0 0 12px rgba(240, 180, 54, 0.25);
+}
+.place.p2 {
+  background: linear-gradient(180deg, #d5dde8, var(--silver));
+  color: #33383f;
+  border-color: var(--silver);
+  box-shadow: 0 0 12px rgba(184, 192, 204, 0.2);
+}
+.place.p3 {
+  background: linear-gradient(180deg, #d88d52, var(--bronze));
+  color: #fff;
+  border-color: var(--bronze);
+  box-shadow: 0 0 12px rgba(203, 123, 58, 0.25);
+}
+.place.dnx {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(252, 165, 165, 0.55);
+  color: var(--dnx);
+  font-size: calc(var(--fs-lane) * 0.78);
+  letter-spacing: 0.02em;
+}
+/* 아직 기록이 없는 자리 — 칸은 지키되 소리는 내지 않는다 */
+.place.empty {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted-dim);
+  font-weight: 500;
+}
+
+.who {
+  min-width: 0;
+}
+
+/* 이름과 기록 사이의 점선 안내선. 멀리서도 눈이 행을 따라 미끄러진다.
+   (인쇄된 경기 결과표의 leader dot 과 같은 장치) */
+.leader {
+  align-self: center;
+  border-bottom: 2px dotted rgba(148, 163, 184, 0.26);
+  min-width: 1ch;
+}
+
+.who-name {
+  font-size: var(--fs-row);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.25;
+}
+
+.who-sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-label);
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+.bib {
+  display: inline-grid;
+  place-items: center;
+  min-width: 2.2em;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  color: var(--muted);
+  font-size: calc(var(--fs-label) * 0.95);
+  font-weight: 700;
+}
+
+/* ── 기록 셀 ────────────────────────────────────────────
+   소수점 위치가 절대 흔들리지 않도록 정수부·점·소수부를 고정폭 3칸으로 나눈다.
+   "17.633" 과 "1:05.87" 이 같은 세로선 위에 점을 맞춘다. */
+.rec {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--sp) * 0.9);
+  justify-self: end;
+}
+
+.time {
+  display: inline-grid;
+  grid-template-columns: 4.6ch 0.55ch 3.1ch;
+  align-items: baseline;
+  font-size: var(--fs-time);
+  font-weight: 700;
+  line-height: 1.1;
+}
+.time .t-main {
+  text-align: right;
+}
+.time .t-dot {
+  text-align: center;
+  opacity: 0.7;
+  font-style: normal;
+}
+.time .t-frac {
+  text-align: left;
+  text-decoration: none;
+  font-size: 0.82em;
+  color: #dbe4f0;
+}
+.time.is-empty {
+  color: var(--muted-dim);
+  font-weight: 500;
+}
+.time.is-dnx {
+  color: var(--dnx);
+  grid-template-columns: 1fr;
+  font-size: calc(var(--fs-time) * 0.72);
+  letter-spacing: 0.04em;
+}
+.time.is-dnx .t-main {
+  text-align: right;
+}
+
+.rec-flags {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  min-width: 3.4em;
+}
+
+/* 지금 달리는 조의 아직 안 들어온 레인 — 계측 대기 */
+.lane.is-waiting .who-name {
+  color: #cbd5e1;
+}
+.lane.is-waiting .time.is-empty::after {
+  content: "";
+}
+
+/* ══════════════════════════════════════════════ 순위 목록 */
+
+.rank {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rank-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sp);
+  padding: calc(var(--sp) * 0.55) var(--pad);
+  border-top: 1px solid var(--border-soft);
+  will-change: transform;
+}
+.rank-row:first-child {
+  border-top: 0;
+}
+.rank-row.top1 {
+  background: linear-gradient(90deg, rgba(251, 191, 36, 0.13), transparent 62%);
+}
+.rank-row.top2 {
+  background: linear-gradient(90deg, rgba(213, 221, 232, 0.09), transparent 58%);
+}
+.rank-row.top3 {
+  background: linear-gradient(90deg, rgba(224, 154, 95, 0.1), transparent 58%);
+}
+
+.rank-row .who-name {
+  font-size: calc(var(--fs-row) * 0.94);
+}
+.rank-row .time {
+  font-size: calc(var(--fs-time) * 0.82);
+}
+
+/* 자리를 옮기는 중인 행 — 불투명한 바닥을 깔고 위로 올린다.
+   겹쳐 지나가는 두 행의 글자가 뭉개지면 "이동"이 아니라 "깜빡임"으로 읽힌다. */
+.lane.moving,
+.rank-row.moving {
+  position: relative;
+  z-index: 3;
+  background-color: var(--surface-2);
+  box-shadow: 0 6px 20px rgba(2, 6, 23, 0.55);
+  border-radius: 6px;
+}
+
+/* 순위 변동 화살표 — 이동한 방향과 칸수를 글자로도 남긴다 */
+.delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--fs-label);
+  font-weight: 800;
+  font-family: var(--mono);
+  padding: 0 4px;
+  border-radius: 4px;
+}
+.delta.up {
+  color: #86efac;
+  background: rgba(74, 222, 128, 0.13);
+}
+.delta.down {
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.13);
+}
+
+/* ═════════════════════════════════════════ 다음 경기 / 목록 */
+
+.upnext {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.up-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--sp);
+  align-items: center;
+  padding: calc(var(--sp) * 0.7) var(--pad);
+  border-top: 1px solid var(--border-soft);
+}
+.up-row:first-child {
+  border-top: 0;
+}
+.up-no {
+  font-family: var(--mono);
+  font-size: var(--fs-lane);
+  font-weight: 700;
+  color: var(--muted);
+  min-width: 2.2em;
+}
+.up-name {
+  font-size: calc(var(--fs-row) * 0.9);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.up-sub {
+  font-size: var(--fs-label);
+  color: var(--muted);
+}
+
+/* ═══════════════════════════════════════════════ 빈 상태 */
+
+.empty-note {
+  padding: calc(var(--pad) * 1.6) var(--pad);
+  text-align: center;
+  color: var(--muted);
+  font-size: calc(var(--fs-row) * 0.85);
+}
+.empty-note strong {
+  display: block;
+  color: var(--fg);
+  font-size: calc(var(--fs-row) * 1.05);
+  margin-bottom: 6px;
+}
+
+/* ══════════════════════════════════════════════════ 푸터 */
+
+.ft {
+  display: flex;
+  align-items: center;
+  gap: var(--sp);
+  flex-wrap: wrap;
+  padding: calc(var(--pad) * 0.55) var(--pad);
+  border-top: 1px solid var(--border);
+  background: rgba(14, 18, 35, 0.92);
+  font-size: var(--fs-label);
+  color: var(--muted);
+}
+.ft-spacer {
+  flex: 1;
+}
+
+/* 조작 버튼 묶음 */
+.ft-ctrls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+/* 관중 전용 모드(기본): 하단 조작 버튼을 숨겨 깔끔한 전광판으로 둔다.
+   운영자가 화면을 만지면(포인터 이동·터치·키·하단 호버) 잠깐 나타난다. */
+body.audience .ft-ctrls {
+  opacity: 0;
+  transform: translateY(130%);
+  pointer-events: none;
+  transition: opacity 0.28s ease, transform 0.28s ease;
+}
+body.audience.reveal-ctrls .ft-ctrls,
+body.audience .ft:hover .ft-ctrls {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+/* ══════════════════════════════════════════════════ 컨트롤 */
+
+.btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: var(--fs-label);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease-out),
+    border-color var(--t-fast) var(--ease-out);
+}
+.btn:hover {
+  background: var(--surface-3);
+  border-color: var(--muted-dim);
+}
+.btn[aria-pressed="true"] {
+  background: rgba(34, 211, 238, 0.16);
+  border-color: var(--live);
+  color: #cffafe;
+}
+.btn:focus-visible,
+.tab:focus-visible,
+.ev-item:focus-visible,
+.sheet-close:focus-visible {
+  outline: 3px solid var(--live);
+  outline-offset: 2px;
+}
+
+/* 폰에서는 터치 목표를 넉넉히 (WCAG 목표 크기 + 8px 이상 간격) */
+[data-mode="phone"] .btn {
+  min-height: 44px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+.btn .ico {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+
+/* ── 탭 (폰) ── */
+.tabs {
+  display: flex;
+  gap: 6px;
+  padding: var(--sp) var(--pad) 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  appearance: none;
+  flex: none;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease-out), color var(--t-fast);
+}
+.tab[aria-selected="true"] {
+  background: var(--fg);
+  border-color: var(--fg);
+  color: var(--bg);
+}
+
+/* ── 종목 선택 시트 ── */
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  background: rgba(2, 6, 23, 0.97);
+  backdrop-filter: blur(6px);
+}
+.sheet[hidden] {
+  display: none;
+}
+.sheet-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp);
+  padding: var(--pad);
+  border-bottom: 1px solid var(--border);
+}
+.sheet-hd h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.sheet-body {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: calc(var(--pad) + env(safe-area-inset-bottom, 0px));
+}
+.sheet-close {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.ev-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--sp);
+  align-items: center;
+  width: 100%;
+  min-height: 56px;
+  padding: 10px var(--pad);
+  border: 0;
+  border-top: 1px solid var(--border-soft);
+  background: transparent;
+  color: var(--fg);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.ev-item:hover {
+  background: var(--surface);
+}
+.ev-item[aria-current="true"] {
+  background: rgba(34, 211, 238, 0.1);
+  box-shadow: inset 3px 0 0 var(--live);
+}
+.ev-item .up-name {
+  white-space: normal;
+}
+
+/* 진행 상태 점 — 색 외에 형태로도 구분된다 */
+.pdot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--muted-dim);
+  flex: none;
+}
+.pdot.run {
+  border-color: var(--live);
+  background: radial-gradient(circle, var(--live) 45%, transparent 46%);
+}
+.pdot.done {
+  border-color: var(--ok);
+  background: var(--ok);
+}
+
+/* ══════════════════════════════════════════════════ 연출 */
+
+/* 새 기록 도착 — 선수가 지나가듯 왼쪽에서 오른쪽으로 빛이 훑는다 */
+@keyframes sweep {
+  from {
+    transform: translateX(-30%);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  to {
+    transform: translateX(115%);
+    opacity: 0;
+  }
+}
+
+.sweep {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 34%;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(34, 211, 238, 0.22),
+    rgba(248, 250, 252, 0.16),
+    transparent
+  );
+  animation: sweep 620ms var(--ease-out) forwards;
+}
+
+/* 처음 들어온 기록 — 밝기만 튀었다 가라앉는다.
+   투명도를 건드리지 않는다: 전광판에서 숫자가 잠깐이라도 사라지면 안 된다. */
+.time.pop {
+  animation: pop 520ms var(--ease-out);
+}
+@keyframes pop {
+  0% {
+    color: var(--live);
+    text-shadow: 0 0 18px rgba(34, 211, 238, 0.6);
+  }
+  100% {
+    color: inherit;
+    text-shadow: none;
+  }
+}
+
+/* 정정된 기록 — 옛 값이 위로 빠지고 새 값이 아래에서 올라온다.
+   여기서는 값이 실제로 "바뀐" 것이므로 교체가 보여야 한다. */
+.time.swap-in {
+  animation: swapIn 320ms var(--ease-out);
+}
+@keyframes swapIn {
+  from {
+    transform: translateY(0.42em);
+    opacity: 0.25;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 순위표에 새로 올라온 행 */
+.rank-row.enter {
+  animation: rowEnter 320ms var(--ease-out);
+}
+@keyframes rowEnter {
+  from {
+    opacity: 0.2;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ghost-old {
+  position: absolute;
+  right: var(--pad);
+  font-family: var(--mono);
+  font-size: calc(var(--fs-time) * 0.62);
+  color: var(--muted-dim);
+  text-decoration: line-through;
+  pointer-events: none;
+  animation: ghostOut 900ms var(--ease-out) forwards;
+}
+@keyframes ghostOut {
+  from {
+    transform: translateY(0);
+    opacity: 0.9;
+  }
+  to {
+    transform: translateY(-1.1em);
+    opacity: 0;
+  }
+}
+
+/* 잠정 → 확정으로 넘어간 순간 */
+.confirm-flash {
+  animation: confirmFlash 900ms var(--ease-out);
+}
+@keyframes confirmFlash {
+  0% {
+    box-shadow: inset 0 0 0 2px rgba(74, 222, 128, 0.75);
+  }
+  100% {
+    box-shadow: inset 0 0 0 2px rgba(74, 222, 128, 0);
+  }
+}
+
+/* ── 움직임을 줄여 달라고 한 사용자 ──────────────────────
+   위치 이동·훑고 지나가는 빛·깜빡임을 전부 끄고, 최종 상태만 보여 준다.
+   대신 "바뀌었다"는 사실은 색 없는 테두리 강조로 1.2초 남긴다. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .sweep,
+  .ghost-old {
+    display: none !important;
+  }
+  .b-live .dot {
+    animation: none;
+    opacity: 1;
+  }
+  .lane.rm-mark,
+  .rank-row.rm-mark {
+    outline: 2px solid var(--live);
+    outline-offset: -2px;
+  }
+}
+
+/* ══════════════════════════════════════ 스크린리더 전용 */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ══════════════════════════════════════════ 반응형 보정 */
+
+@media (max-width: 380px) {
+  :root {
+    --pad: 10px;
+    --fs-row: 16px;
+    --fs-time: 20px;
+  }
+  .who-sub .grade {
+    display: none;
+  }
+}
+
+/* 좁고 낮은 대형 화면(가로 전광판)에서 사이드 칼럼이 눌리지 않게 */
+@media (max-width: 1100px) {
+  [data-mode="stage"] .main {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1.5fr) minmax(0, 1fr);
+    overflow: auto;
+  }
+  [data-mode="stage"] .col-side {
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+}
