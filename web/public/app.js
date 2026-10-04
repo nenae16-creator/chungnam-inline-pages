@@ -46,31 +46,22 @@
     } catch (_) { /* 현재 열린 화면의 알림은 계속 작동한다. */ }
   }
 
-  /* ---------- assets (목업 크롭) ---------- */
-  // 선수 사진(순수 사진 asset). 손글씨/워터마크/타이틀은 코드 텍스트로 별도 구현.
+  /* ---------- assets ---------- */
+  // 생성 선수 사진 대신 충남 대회용 비인물 트랙 일러스트를 사용한다.
+  const TRACK_IMG = "assets/campaign/chungnam-track-hero.webp";
   const HERO = {
-    home: "assets/mockup/hero-home.webp", schedule: "assets/mockup/heroClean-schedule.webp",
-    event: "assets/mockup/heroClean-live.webp", live: "assets/mockup/heroClean-live.webp",
-    results: "assets/mockup/heroClean-results.webp", athletes: "assets/mockup/heroClean-athletes.webp",
-    athlete: "assets/mockup/heroClean-athlete.webp", plain: "assets/mockup/heroClean-plain.webp",
-    guide: "assets/mockup/heroClean-guide.webp",
+    home: TRACK_IMG, schedule: TRACK_IMG, event: TRACK_IMG, live: TRACK_IMG,
+    results: TRACK_IMG, athletes: TRACK_IMG, athlete: TRACK_IMG, plain: TRACK_IMG,
+    guide: TRACK_IMG,
   };
   const heroImg = (k) => HERO[k] || HERO.plain;
-  // 화면별 헤더 이미지(원본 앱과 같은 자리). 충남 버전은 모두 생성 이미지 — 출처는 source/sources.md.
-  // 왼쪽은 제목 가독성을 위해 밝게 바랜 상태로 구워 두었다(오버레이 없음).
+  // 모든 서브 화면에 동일한 대회 트랙 일러스트를 사용한다.
   const HEROCLEAN = {
-    schedule: "assets/mockup/heroClean-schedule.webp",
-    results: "assets/mockup/heroClean-results.webp",
-    athletes: "assets/mockup/heroClean-athletes.webp",
-    live: "assets/mockup/heroClean-live.webp",
-    event: "assets/mockup/heroClean-live.webp",
-    plain: "assets/mockup/heroClean-plain.webp",
-    guide: "assets/mockup/heroClean-guide.webp",
+    schedule: TRACK_IMG, results: TRACK_IMG, athletes: TRACK_IMG,
+    live: TRACK_IMG, event: TRACK_IMG, plain: TRACK_IMG, guide: TRACK_IMG,
   };
-  const MARK_IMG = "assets/mockup/mark.png";
-  const EMBLEM_IMG = "assets/mockup/emblem.png";
-  const STORY_IMG = "assets/mockup/story-photo.webp";
   const ICON_IMG = "assets/campaign/skater-icon.png";
+  const STORY_IMG = TRACK_IMG;
   const MEDAL = { g: "assets/mockup/medal-gold.png", s: "assets/mockup/medal-silver.png", b: "assets/mockup/medal-bronze.png" };
 
   /* ---------- helpers ---------- */
@@ -82,9 +73,31 @@
   const parseMeetDate = (s) => { const m = String(s || "").match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/); return m ? new Date(+m[1], +m[2] - 1, +m[3], 9, 0, 0) : null; };
   const meetDate = () => isCurrentMeet() ? (site.dateLabel || data.meta?.date || "개최일 확인 중") : (data.meta?.date || "개최일 확인 중");
   const meetStartMs = () => { if (isCurrentMeet()) { const t = Date.parse(site.campaign?.startAt || ""); if (Number.isFinite(t)) return t; } const d = parseMeetDate(data.meta?.date); return d ? d.getTime() : NaN; };
-  // 대회 시작 전에는 어떤 경기도 LIVE/진행중으로 표시하지 않는다(예정).
-  const meetStarted = () => { const s = meetStartMs(); return Number.isFinite(s) ? Date.now() >= s : true; };
-  const isLiveEv = (ev) => !!ev.isLive && meetStarted();
+  const eventHasRecords = (ev) => {
+    if (!ev) return false;
+    if (Number(ev.progress?.done) > 0) return true;
+    const view = source.eventView(ev.id);
+    return !!view?.heats?.some((heat) => heat.done > 0 || heat.confirmed);
+  };
+  const meetHasRecords = () => events().some(eventHasRecords);
+  const meetAllHeatsConfirmed = () => {
+    const views = events().map((ev) => source.eventView(ev.id)).filter(Boolean);
+    return views.length > 0 && views.every((view) => view.heats.length > 0 && view.heats.every((heat) => heat.confirmed));
+  };
+  const withinMeetDay = (now = Date.now()) => {
+    const start = meetStartMs();
+    const end = isCurrentMeet() ? Date.parse(site.campaign?.endAt || "") : (Number.isFinite(start) ? start + 9 * 3600 * 1000 : NaN);
+    return Number.isFinite(start) && Number.isFinite(end) && now >= start && now <= end;
+  };
+  // 시작 시각 미정일 때는 자정이 LIVE 시작 시각이 아니다. 심판 기록이 게시된 종목만 표시한다.
+  const meetStarted = () => {
+    if (isCurrentMeet() && site.campaign?.timeTBD) return withinMeetDay() && meetHasRecords();
+    const s = meetStartMs();
+    return Number.isFinite(s) ? Date.now() >= s : true;
+  };
+  const isLiveEv = (ev) => !!ev.isLive && (isCurrentMeet() && site.campaign?.timeTBD
+    ? withinMeetDay() && eventHasRecords(ev)
+    : meetStarted());
   const meetVenue = () => site.venue?.name || (data.meta?.place ? data.meta.place + " · 경기장 확인 중" : "경기장 확인 중");
   const bibN = (id) => String(id).padStart(3, "0");
   // 한글 이름 → 로마자(개정 로마자 표기 + 흔한 성씨 관용 표기). 목업의 "KIM SEOYEON" 부제용.
@@ -101,12 +114,16 @@
     const title = meta.title || meetTitle();
     const nA = (data.athletes || []).length, nE = events().length;
     const when = [meta.date, meta.start].filter(Boolean).join(" ");
-    const held = meetStarted() ? "열렸습니다" : "열립니다";
+    const phase = timeState(Date.now()).phase;
+    const held = phase === "live" ? "경기 기록이 업데이트되고 있습니다"
+      : phase === "ended" ? "대회가 종료되었습니다"
+      : phase === "past" ? "개최일이 지났습니다. 종료 여부와 최종 결과는 주최 측 안내를 확인해 주세요"
+      : "개최 예정입니다";
     const out = [];
     out.push({
       id: "open", isNew: true, title: title + " 개최 안내",
       body: isCurrentMeet()
-        ? `${when ? when + ", " : ""}${meta.place || "경기장 미정"}에서 ${title}가 ${held}. 출전 선수 명단·경기 순서·경기 시각은 아직 등록되지 않았습니다(미정).`
+        ? `${when ? when + ", " : ""}${meta.place || "경기장 미정"}에서 ${phase === "live" ? "현재 " + title + " 경기 기록이 업데이트되고 있습니다." : phase === "ended" ? title + " 기록이 모두 확정되었습니다." : phase === "past" ? "개최 예정일이 지났습니다. 종료 여부와 최종 결과는 주최 측 안내를 확인해 주세요." : title + " 개최 예정입니다."} 출전 선수 명단·경기 순서·경기 시각은 아직 등록되지 않았습니다(미정).`
         : `${when ? when + ", " : ""}${meta.place || "경기장 미정"}에서 ${title}가 ${held}. 총 ${nE}개 경기에 ${nA}명의 선수가 참가합니다. 경기 순서와 출전 명단은 대회 일정 화면에서 확인할 수 있습니다.`,
       date: meta.date || "",
     });
@@ -231,6 +248,18 @@
     const start = meetStartMs();
     const end = isCurrentMeet() ? Date.parse(site.campaign?.endAt || "") : (Number.isFinite(start) ? start + 9 * 3600 * 1000 : NaN);
     if (!Number.isFinite(start)) return { label: "대회 일정 확인 중", sub: "확정 후 안내합니다", values: ["—", "—", "—", "—"], phase: "unknown" };
+    if (isCurrentMeet() && site.campaign?.timeTBD) {
+      if (now < start) {
+        const days = Math.max(0, Math.ceil((start - now) / 86400000));
+        return { label: "대회일까지", sub: "경기 시작 시각은 미정입니다", countdown: { value: String(days), unit: "일" }, phase: "upcoming" };
+      }
+      if (Number.isFinite(end) && now <= end) {
+        if (meetHasRecords()) return { label: "경기 기록 업데이트 중", sub: "심판 기록 데이터 기준 · 현장 진행 상황은 다를 수 있습니다", stateText: "기록 업데이트 중", phase: "live" };
+        return { label: "오늘 대회 예정", sub: "경기 시작 시각과 순서는 미정입니다", stateText: "경기 시작 시각 미정", phase: "upcoming" };
+      }
+      if (meetAllHeatsConfirmed()) return { label: "대회가 종료되었습니다", sub: "함께해 주셔서 감사합니다", stateText: "최종 기록 확정", phase: "ended" };
+      return { label: "대회일 경과", sub: "종료 여부와 최종 결과는 주최 측 안내를 확인하세요", stateText: "최종 결과 확인 중", phase: "past" };
+    }
     if (now >= start) {
       const ended = Number.isFinite(end) && now >= end;
       return { label: ended ? "대회가 종료되었습니다" : "대회가 진행 중입니다", sub: ended ? "함께해 주셔서 감사합니다" : "지금, 열정의 순간!", values: ["0", "00", "00", "00"], phase: ended ? "ended" : "live" };
@@ -254,7 +283,7 @@
   function Header({ onDark, onMenu }) {
     return html`<header class=${"ci-head " + (onDark ? "on-dark" : "")}>
       <a class="ci-brand" href="#home" aria-label=${meetTitle() + " 홈"}>
-        <img src=${MARK_IMG} width="46" height="40" alt="" />
+        <img src=${ICON_IMG} width="38" height="38" alt="" />
         <span><strong>${meetTitle()}</strong><small>CHUNGNAM INLINE ${year()}</small></span>
       </a>
       <div class="ci-head-r">
@@ -268,7 +297,7 @@
   function Footer() {
     return html`<footer class="ci-foot">
       <div class="ci-foot-main">
-        <div class="ci-foot-org"><img class="ci-foot-emblem" src=${EMBLEM_IMG} alt="충청남도롤러스포츠연맹 로고" width="36" height="32" /><span><strong>${site.organizer?.name || "주최 미정"}</strong><small>${site.organizer?.nameEn || ""}</small></span></div>
+        <div class="ci-foot-org"><img class="ci-foot-emblem" src=${ICON_IMG} alt="" width="36" height="32" /><span><strong>${site.organizer?.name || "주최 미정"}</strong><small>${site.organizer?.nameEn || ""}</small></span></div>
         <p class="ci-foot-slogan">주최·주관<br />${site.organizer?.host || "미정"}</p>
         <div class="ci-foot-social" aria-label="문의">${site.organizer?.email ? html`<a href=${"mailto:" + site.organizer.email}>${site.organizer.email}</a>` : null}</div>
       </div>
@@ -283,7 +312,7 @@
       return () => window.removeEventListener("keydown", onKey);
     }, [open, onClose]);
     const links = [
-      ["#home", "홈", "home"], ["#schedule", "대회 일정", "calendar"], ["#live", "현재 경기 (LIVE)", "live"],
+      ["#home", "홈", "home"], ["#schedule", "대회 일정", "calendar"], ["#live", "경기 현황", "live"],
       ["#results", "경기 결과", "trophy"], ["#athletes", "선수 찾기", "users"], ["#notices", "공지사항", "info"],
       ["#guide", "오시는 길", "pin"], ["#participation", "참가안내", "users"], ["#meet-rules", "대회요강", "clipboard"], ["#race-guide", "시합 규칙 쉽게보기", "info"],
       ["#judge", "심판 기록", "clipboard"],
@@ -358,18 +387,19 @@
     const [now, setNow] = useState(Date.now());
     useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
     const st = timeState(now);
-    const units = ["일", "시간", "분", "초"];
     return html`<section class="ci-count" data-phase=${st.phase} aria-label="대회 카운트다운">
       <div class="ci-count-head"><${Ic} n="clock" cls="b" /><div><strong>${st.label}</strong><small>${st.sub}</small></div></div>
-      <div class="ci-count-vals" role="timer">${st.values.map((v, i) => html`<div key=${i}><strong>${v}</strong><span>${units[i]}</span></div>`)}</div>
+      ${st.countdown ? html`<div class="ci-count-vals" role="timer"><div><strong>${st.countdown.value}</strong><span>${st.countdown.unit}</span></div></div>`
+        : st.stateText ? html`<div class="ci-count-status" role="status">${st.stateText}</div>`
+        : html`<div class="ci-count-vals" role="timer">${st.values.map((v, i) => html`<div key=${i}><strong>${v}</strong><span>${["일", "시간", "분", "초"][i]}</span></div>`)}</div>`}
     </section>`;
   }
   function StoryBanner({ compact }) {
-    return html`<a class="ci-home-story" href="#results">
+    return html`<a class="ci-home-story" href="#meet-rules">
       <img class="ci-home-story-photo" src=${STORY_IMG} alt="" aria-hidden="true" />
       <div class="ci-home-story-copy">
-        <h2>함께 달리는<br />더 특별한 순간</h2>
-        ${compact ? html`<p>${meetVenue()} · ${meetDate()}</p>` : html`<p>${meetDate()}<br />${meetVenue()}</p><span class="ci-home-story-cta">대회 하이라이트 보기 <${Ic} n="arrow" /></span>`}
+        <h2>함께 달리는<br />충남의 레이스</h2>
+        ${compact ? html`<p>${meetVenue()} · ${meetDate()}</p>` : html`<p>${meetDate()}<br />${meetVenue()}</p><span class="ci-home-story-cta">종목·안전 안내 보기 <${Ic} n="arrow" /></span>`}
       </div>
     </a>`;
   }
@@ -384,16 +414,17 @@
     const view = source.eventView(source.currentEventId());
     if (!view) return null;
     const ev = view.event;
+    const hasRecords = meetHasRecords();
     const finished = view.heats.length > 0 && view.heats.every((heat) => heat.confirmed);
     const next = nextEvent();
-    return html`<section class="ci-current-race" aria-label="현재 경기" aria-live="polite">
-      <div class="ci-sec-head"><h2>현재 경기</h2><span>${finished ? "마감" : meetStarted() ? "진행 안내" : "대회 전 · 심판 선택 경기"}</span></div>
-      <a class="ci-next-card" href="#live">
-        <div class="ci-next-no">제${Number(ev.no)}경기</div>
-        <div class="ci-next-main"><strong>${ev.name}</strong><span>${view.lineupPending ? "출전 명단 확정 대기" : !view.heats.length ? "출전 명단·조 편성 미등록" : finished ? "모든 조 마감" : (view.liveHeat || 1) + "조 / " + view.heats.length + "조"}</span><span>기록·순위 보기</span></div>
+    return html`<section class="ci-current-race" aria-label="경기 현황" aria-live="polite">
+      <div class="ci-sec-head"><h2>경기 현황</h2><span>${finished ? "마감" : hasRecords ? "기록 업데이트" : "경기 편성 대기"}</span></div>
+      <a class="ci-next-card" href=${hasRecords ? "#live" : "#schedule"}>
+        <div class="ci-next-no">${hasRecords ? `제${Number(ev.no)}경기` : "편성 미정"}</div>
+        <div class="ci-next-main"><strong>${hasRecords ? ev.name : "출전 편성 확인 중"}</strong><span>${hasRecords ? (view.lineupPending ? "출전 명단 확정 대기" : !view.heats.length ? "출전 명단·조 편성 미등록" : finished ? "모든 조 마감" : (view.liveHeat || 1) + "조 / " + view.heats.length + "조") : "선수 명단·경기 순서·시각이 등록되면 안내합니다."}</span><span>${hasRecords ? "기록·순위 보기" : "요강 기준 종목 보기"}</span></div>
         <${Ic} n="chevron" cls="go" />
       </a>
-      <p>${next ? "다음 경기: 제" + Number(next.no) + "경기 · " + next.name : finished ? "마지막 경기까지 마감되었습니다." : "마지막 경기입니다."}</p>
+      <p>${hasRecords ? (next ? "다음 경기: 제" + Number(next.no) + "경기 · " + next.name : finished ? "마지막 경기까지 마감되었습니다." : "마지막 경기입니다.") : "대회요강의 종목은 확인할 수 있습니다. 경기 일정은 공식 공지 후 표시합니다."}</p>
     </section>`;
   }
   function Home({ onMenu }) {
@@ -406,7 +437,7 @@
     const pub = notices();
     return html`<div class="ci-page ci-home">
       <section class="ci-home-hero">
-        <img src=${heroImg("home")} alt="충남 유니폼을 입은 인라인 스피드 선수들(생성 이미지)" fetchpriority="high" />
+        <img src=${heroImg("home")} alt="충남 대회 트랙을 표현한 일러스트" fetchpriority="high" />
         <${Header} onDark=${false} onMenu=${onMenu} />
         <div class="ci-home-copy">
           <h1>제1회 충청남도<br /><em>체육회장기</em></h1>
@@ -479,8 +510,8 @@
         </div></section>
         <${DateScroller} />
         <section class="ci-day-card">
-          <div class="ci-day-l"><${Ic} n="calendar" cls="b" /><div><strong>${shortDateLabel()} 대회 일정</strong><small>오늘도 인라인의 뜨거운 레이스가 펼쳐집니다.</small></div></div>
-          <div class="ci-day-r"><div><small>오늘의 경기 수</small><strong>${total}<em>경기</em></strong></div><span><${Ic} n="pin" />${meetVenue()}</span></div>
+          <div class="ci-day-l"><${Ic} n="calendar" cls="b" /><div><strong>${shortDateLabel()} 대회 일정</strong><small>${site.campaign?.timeTBD ? "요강 기준 종목 · 경기 시각 미정" : "대회 당일 경기 일정"}</small></div></div>
+          <div class="ci-day-r"><div><small>표시 종목</small><strong>${total}<em>개</em></strong></div><span><${Ic} n="pin" />${meetVenue()}</span></div>
         </section>
         <div class="ci-sched-list">${list.length ? list.map((ev) => html`<${ScheduleRow} key=${ev.id} ev=${ev} fav=${favs.has(-ev.id)} onFav=${() => toggleFav(-ev.id)} />`) : html`<${Empty} h="조건에 맞는 경기가 없습니다" p="다른 필터를 선택해 주세요." ><button class="ci-btn ghost" onClick=${() => { setDist("all"); setDivision("all"); setStatus("all"); }}>필터 초기화</button><//>`}</div>
         <a class="ci-wide-link" href="#results">경기 결과 보기 <${Ic} n="arrow" /></a>
@@ -521,10 +552,12 @@
     const s = eventStatus(ev);
     const heat = view.heats.find((x) => x.heat === view.liveHeat) || view.heats[0];
     const live = isLiveEv(ev) && s.cat !== "done";
+    const hasRecords = meetHasRecords();
     const nx = nextEvent();
     return html`<div class="ci-page">
-      <${SubHero} kind="event" title=${html`지금, 이 순간!<br /><span class="t2">한계를 넘어</span><br />달리는 선수들`} subtitle=${html`${meetTitle()}<br />${meetVenue()}`} back=${fromHome ? "#home" : "#schedule"} backLabel=${fromHome ? "대회 홈" : "대회 일정"} crumb=${(fromHome ? "대회 홈" : "대회 일정") + " › 경기 상세"} onMenu=${onMenu} />
+      <${SubHero} kind="event" title=${live ? twoTone("실시간", "경기 현황") : "경기 현황"} subtitle=${html`${meetTitle()}<br />${meetVenue()}${live || !isCurrentMeet() || !site.campaign?.timeTBD ? "" : " · 경기 시각 미정"}`} back=${fromHome ? "#home" : "#schedule"} backLabel=${fromHome ? "대회 홈" : "대회 일정"} crumb=${(fromHome ? "대회 홈" : "대회 일정") + " › 경기 상세"} onMenu=${onMenu} />
       <main class="ci-content">
+        <${DataProvenance} />
         <section class="ci-event-card"><div class="ci-event-top">
           <div class="ci-event-no"><small>경기번호</small><strong>${ev.no}</strong><span class="ci-event-skate"><${Ic} n="trophy" /></span></div>
           <div class="ci-event-copy">
@@ -540,9 +573,10 @@
         </div></section>
         ${view.lineupPending
           ? html`<${Empty} h="최강전 출전 명단을 기다리고 있습니다" p="앞선 경기의 결과가 확정되면 출전 선수가 표시됩니다." />`
-          : html`<${LiveTable} view=${view} />
+          : hasRecords ? html`<${LiveTable} view=${view} />
             <div class="ci-sec-head sub"><h2><${Ic} n="clock" cls="b" />다음 경기 안내</h2><span>이어서 진행됩니다.</span></div>
-            ${nx ? html`<a class="ci-next-card" href=${"#event/" + nx.id}><div class="ci-next-no">제${Number(nx.no)}경기</div><div class="ci-next-main"><strong>${nx.name}</strong><span><${Ic} n="calendar" />${meetDate()} ${scheduleTimes()[nx.id] || ""}</span><span><${Ic} n="pin" />${meetVenueShort()}</span></div><${Ic} n="chevron" cls="go" /></a>` : null}`}
+            ${nx ? html`<a class="ci-next-card" href=${"#event/" + nx.id}><div class="ci-next-no">제${Number(nx.no)}경기</div><div class="ci-next-main"><strong>${nx.name}</strong><span><${Ic} n="calendar" />${meetDate()} ${scheduleTimes()[nx.id] || ""}</span><span><${Ic} n="pin" />${meetVenueShort()}</span></div><${Ic} n="chevron" cls="go" /></a>` : null}`
+          : html`<${Empty} h="아직 게시된 경기 기록이 없습니다" p="출전 명단·조 편성·경기 순서와 시작 시각은 공식 안내 후 표시합니다."><a class="ci-btn ghost" href="#schedule">대회 종목 안내</a><//>`}
         <${StoryBanner} compact=${true} />
       </main>
       <${Footer} />
@@ -747,8 +781,11 @@
   function Participation({ onMenu }) {
     const p = site.participation || {};
     const rows = [["대회 일정", meetDate()], ["대회 장소", meetVenue()], ["참가 자격", p.eligibility || "확인 후 안내합니다."], ["신청 기간", p.period || "확인 중"], ["신청 방법", p.instructions || "확인 중"], ["문의", p.contact || "확인 중"]];
-    return html`<div class="ci-page"><${SubHero} kind="plain" title="참가안내" subtitle="함께 달릴 준비, 여기서 시작하세요." onMenu=${onMenu} />
-      <main class="ci-content"><section class="ci-info-card"><dl>${rows.map(([t, d]) => html`<div key=${t}><dt>${t}</dt><dd>${d}</dd></div>`)}</dl><div class="ci-info-pending"><${Ic} n="info" /><div><strong>${p.statusTitle || "참가신청 접수 준비 중"}</strong><p>${p.statusBody || "공식 접수처가 등록되면 이 화면에서 신청할 수 있습니다."}</p></div></div></section></main><${Footer} /></div>`;
+    return html`<div class="ci-page"><${SubHero} kind="plain" title="참가안내" subtitle="참가 자격·접수 일정·신청 방법" onMenu=${onMenu} />
+      <main class="ci-content"><section class="ci-info-card ci-participation-card">
+        <div class="ci-participation-status"><span class="ci-status-pill closed">${p.status === "closed" ? "접수 종료" : "접수 안내"}</span><div><h2>${p.statusTitle || "참가신청 안내"}</h2><p>${p.statusBody || "공식 접수처를 확인해 주세요."}</p></div></div>
+        <dl class="ci-participation-facts">${rows.map(([t, d]) => html`<div key=${t}><dt>${t}</dt><dd>${d}</dd></div>`)}</dl>
+      </section></main><${Footer} /></div>`;
   }
   function MeetRules({ onMenu }) {
     const g = site.meetGuide || {};
@@ -778,7 +815,12 @@
     return html`<div class="ci-page"><${SubHero} kind="plain" title="시합 규칙 쉽게보기" subtitle="처음 출전하는 선수와 보호자를 위한 안내" onMenu=${onMenu} />
       <main class="ci-content ci-rules-page"><p class="ci-rules-note">이 안내는 ${meetTitle()} 참가요강과 스피드 경기규정을 쉽게 설명한 것입니다. 경기규칙은 대한롤러스포츠연맹 규칙에 준하며, 현장 심판의 지시와 대회 운영 안내를 따르세요.</p>
         ${rules.map(([step, title, body], i) => html`<section class="ci-info-card ci-rule-step" key=${step}><span>${String(i + 1).padStart(2, "0")} · ${step}</span><h2>${title}</h2><p>${body}</p></section>`)}
-        <section class="ci-info-card"><h2>근거 자료</h2><p>제공된 ${meetTitle()} 참가요강 · <a href="https://koreaskate.or.kr/sports/speed/" target="_blank" rel="noopener noreferrer">대한롤러스포츠연맹 스피드 안내</a> · <a href="https://www.worldskate.org/speed/about/regulations.html?download=7554%3Awsk-speed-rulebook+2025" target="_blank" rel="noopener noreferrer">World Skate 스피드 경기규정 2025</a></p></section>
+        <section class="ci-info-card ci-code-guide"><h2>경기 결과 코드</h2><p>이 사이트에서 사용하는 표기 중 고고인라인 용어 안내에 설명된 코드입니다.</p><dl>
+          <div><dt>DNS · Did Not Start</dt><dd>출발하지 않음</dd></div>
+          <div><dt>DNF · Did Not Finish</dt><dd>출발했으나 완주하지 못함</dd></div>
+          <div><dt>DQ · Disqualified</dt><dd>실격 처리</dd></div>
+        </dl><p class="ci-code-source">약어 설명은 <a href="https://gogoinline.com/results/jemnan-inline-rules" target="_blank" rel="noopener noreferrer">고고인라인 경기 용어 안내</a>를 참고해 이 대회 화면에 맞게 정리했습니다. REL 등 다른 표기는 이 대회 심판에게 뜻을 확인하세요. 기록·순위와 판정은 대회요강 및 현장 심판 기록을 따릅니다.</p></section>
+        <section class="ci-info-card"><h2>근거 자료</h2><p>제공된 ${meetTitle()} 참가요강 · <a href="https://koreaskate.or.kr/sports/speed/" target="_blank" rel="noopener noreferrer">대한롤러스포츠연맹 스피드 안내</a></p></section>
       </main><${Footer} /></div>`;
   }
   function JudgeRecords({ onMenu }) {
@@ -851,7 +893,7 @@
   }
   function About({ onMenu }) {
     return html`<div class="ci-page"><${SubHero} kind="plain" title="대회소개" subtitle=${meetTitle()} onMenu=${onMenu} />
-      <main class="ci-content"><section class="ci-info-card ci-about"><img src=${STORY_IMG} alt="" aria-hidden="true" /><h2>${meetTitle()}</h2><p>${site.campaign?.story || "대회 소개 문구는 준비 중입니다. 주최 측 확인 후 게시됩니다."}</p><dl><div><dt>대회명</dt><dd>${meetTitle()}</dd></div><div><dt>일정</dt><dd>${meetDate()}</dd></div><div><dt>장소</dt><dd>${meetVenue()}</dd></div><div><dt>주최·주관</dt><dd>${site.organizer?.host || "미정"}</dd></div><div><dt>후원</dt><dd>${site.organizer?.sponsors || "미정"}</dd></div></dl></section></main><${Footer} /></div>`;
+      <main class="ci-content"><section class="ci-info-card ci-about"><img src=${STORY_IMG} alt="충남 대회 트랙을 표현한 일러스트" /><h2>${meetTitle()}</h2><p>${site.campaign?.story || "충청남도 학생과 동호인이 함께하는 인라인스피드대회입니다. 출전 선수와 경기 순서, 경기 시작 시각은 공식 안내 후 공개합니다."}</p><dl><div><dt>대회명</dt><dd>${meetTitle()}</dd></div><div><dt>일정</dt><dd>${meetDate()}</dd></div><div><dt>장소</dt><dd>${meetVenue()}</dd></div><div><dt>주최·주관</dt><dd>${site.organizer?.host || "미정"}</dd></div><div><dt>후원</dt><dd>${site.organizer?.sponsors || "미정"}</dd></div></dl></section></main><${Footer} /></div>`;
   }
   function NotFound({ onMenu }) {
     return html`<div class="ci-page"><${SubHero} kind="plain" title="정보를 찾을 수 없습니다" subtitle="" onMenu=${onMenu} />
