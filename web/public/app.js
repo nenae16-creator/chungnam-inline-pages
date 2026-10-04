@@ -49,25 +49,27 @@
   /* ---------- assets (목업 크롭) ---------- */
   // 선수 사진(순수 사진 asset). 손글씨/워터마크/타이틀은 코드 텍스트로 별도 구현.
   const HERO = {
-    home: "assets/mockup/hero-home.webp", schedule: "assets/mockup/heroC-schedule.jpg",
-    event: "assets/mockup/heroC-live.jpg", live: "assets/mockup/heroC-live.jpg",
-    results: "assets/mockup/heroC-results.jpg", athletes: "assets/mockup/heroC-athletes.jpg",
-    athlete: "assets/mockup/heroClean-athlete.jpg", plain: "assets/mockup/heroC-schedule.jpg",
+    home: "assets/mockup/hero-home.webp", schedule: "assets/mockup/heroClean-schedule.webp",
+    event: "assets/mockup/heroClean-live.webp", live: "assets/mockup/heroClean-live.webp",
+    results: "assets/mockup/heroClean-results.webp", athletes: "assets/mockup/heroClean-athletes.webp",
+    athlete: "assets/mockup/heroClean-athlete.webp", plain: "assets/mockup/heroClean-plain.webp",
+    guide: "assets/mockup/heroClean-guide.webp",
   };
   const heroImg = (k) => HERO[k] || HERO.plain;
-  // 목업 히어로에서 제목·헤더만 배경으로 지우고 선수+손글씨는 남긴 이미지.
-  // 코드 헤더/제목/부제가 지워진 영역을 덮고, 손글씨는 이미지에 그대로 → 이중 없음, 오버레이 없음.
+  // 화면별 헤더 이미지(원본 앱과 같은 자리). 충남 버전은 모두 생성 이미지 — 출처는 source/sources.md.
+  // 왼쪽은 제목 가독성을 위해 밝게 바랜 상태로 구워 두었다(오버레이 없음).
   const HEROCLEAN = {
-    schedule: "assets/mockup/heroClean-schedule.jpg",
-    results: "assets/mockup/heroClean-results.jpg",
-    athletes: "assets/mockup/heroClean-athletes.jpg",
-    live: "assets/mockup/heroClean-live.jpg",
-    event: "assets/mockup/heroClean-live.jpg",
-    plain: "assets/mockup/heroClean-schedule.jpg",
+    schedule: "assets/mockup/heroClean-schedule.webp",
+    results: "assets/mockup/heroClean-results.webp",
+    athletes: "assets/mockup/heroClean-athletes.webp",
+    live: "assets/mockup/heroClean-live.webp",
+    event: "assets/mockup/heroClean-live.webp",
+    plain: "assets/mockup/heroClean-plain.webp",
+    guide: "assets/mockup/heroClean-guide.webp",
   };
   const MARK_IMG = "assets/mockup/mark.png";
   const EMBLEM_IMG = "assets/mockup/emblem.png";
-  const STORY_IMG = "assets/mockup/story-photo.jpg";
+  const STORY_IMG = "assets/mockup/story-photo.webp";
   const ICON_IMG = "assets/campaign/skater-icon.png";
   const MEDAL = { g: "assets/mockup/medal-gold.png", s: "assets/mockup/medal-silver.png", b: "assets/mockup/medal-bronze.png" };
 
@@ -404,7 +406,7 @@
     const pub = notices();
     return html`<div class="ci-page ci-home">
       <section class="ci-home-hero">
-        <img src=${heroImg("home")} alt="인라인 스피드 경기 이미지(생성 이미지)" fetchpriority="high" />
+        <img src=${heroImg("home")} alt="충남 유니폼을 입은 인라인 스피드 선수들(생성 이미지)" fetchpriority="high" />
         <${Header} onDark=${false} onMenu=${onMenu} />
         <div class="ci-home-copy">
           <h1>제1회 충청남도<br /><em>체육회장기</em></h1>
@@ -828,7 +830,7 @@
       ["T맵 (앱)", `tmap://route?goalname=${nq}&goalx=${v.lng}&goaly=${v.lat}`, "tmap"],
       ["OpenStreetMap", `https://www.openstreetmap.org/?mlat=${v.lat}&mlon=${v.lng}#map=17/${v.lat}/${v.lng}`, "osm"],
     ] : [];
-    return html`<div class="ci-page"><${SubHero} kind="plain" title="오시는 길" subtitle="경기장 위치와 교통 정보를 확인하세요." onMenu=${onMenu} />
+    return html`<div class="ci-page"><${SubHero} kind="guide" title="오시는 길" subtitle="경기장 위치와 교통 정보를 확인하세요." onMenu=${onMenu} />
       <main class="ci-content">
         <section class="ci-info-card"><div class="ci-guide-head"><${Ic} n="pin" cls="b" /><div><strong>${name}</strong><small>${v.address || "세부 장소는 확정 후 안내합니다."}</small></div></div>
           <${VenueMap} v=${v} />

@@ -81,7 +81,7 @@ button,.btn,.nav button,label.btn{min-height:44px}
    타일과 중복되는 상단 nav 알약을 감춰 목업과 같게 하고, 세부 화면에서는 이동용으로 남긴다. */
 .ops-hero{
   position:relative;overflow:hidden;margin:0 0 14px;padding:30px 24px 32px;border-radius:22px;color:#082d67;min-height:224px;display:flex;align-items:center;
-  background:linear-gradient(100deg,rgba(239,245,252,.95) 0%,rgba(239,245,252,.82) 26%,rgba(239,245,252,.4) 48%,rgba(239,245,252,.08) 68%,rgba(239,245,252,0) 86%),url(heroClean-ops.jpg);
+  background:linear-gradient(100deg,rgba(239,245,252,.95) 0%,rgba(239,245,252,.82) 26%,rgba(239,245,252,.4) 48%,rgba(239,245,252,.08) 68%,rgba(239,245,252,0) 86%),url(heroClean-ops.webp);
   background-size:cover,cover;background-position:left,60% 20%;background-repeat:no-repeat,no-repeat;
   box-shadow:0 18px 40px rgba(8,45,103,.14);
 }
