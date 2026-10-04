@@ -47,21 +47,23 @@
   }
 
   /* ---------- assets ---------- */
-  // 생성 선수 사진 대신 충남 대회용 비인물 트랙 일러스트를 사용한다.
-  const TRACK_IMG = "assets/campaign/chungnam-track-hero.webp";
+  // 천안의 선수 중심 구도와 기존 충남 캠페인의 실사풍을 따른 홍보 이미지.
+  const HOME_IMG = "assets/campaign/chungnam-athlete-home.png";
+  const RACE_IMG = "assets/campaign/chungnam-athlete-race.png";
   const HERO = {
-    home: TRACK_IMG, schedule: TRACK_IMG, event: TRACK_IMG, live: TRACK_IMG,
-    results: TRACK_IMG, athletes: TRACK_IMG, athlete: TRACK_IMG, plain: TRACK_IMG,
-    guide: TRACK_IMG,
+    home: HOME_IMG, schedule: RACE_IMG, event: RACE_IMG, live: RACE_IMG,
+    results: "assets/mockup/heroClean-results.webp",
+    athletes: "assets/mockup/heroClean-athletes.webp", athlete: HOME_IMG, plain: RACE_IMG,
+    guide: RACE_IMG,
   };
   const heroImg = (k) => HERO[k] || HERO.plain;
-  // 모든 서브 화면에 동일한 대회 트랙 일러스트를 사용한다.
+  // 제목 영역은 밝게 비우고, 화면별 선수 이미지를 사용한다.
   const HEROCLEAN = {
-    schedule: TRACK_IMG, results: TRACK_IMG, athletes: TRACK_IMG,
-    live: TRACK_IMG, event: TRACK_IMG, plain: TRACK_IMG, guide: TRACK_IMG,
+    schedule: RACE_IMG, results: HERO.results, athletes: HERO.athletes,
+    live: RACE_IMG, event: RACE_IMG, plain: RACE_IMG, guide: RACE_IMG,
   };
   const ICON_IMG = "assets/campaign/skater-icon.png";
-  const STORY_IMG = TRACK_IMG;
+  const STORY_IMG = "assets/mockup/story-photo.webp";
   const MEDAL = { g: "assets/mockup/medal-gold.png", s: "assets/mockup/medal-silver.png", b: "assets/mockup/medal-bronze.png" };
 
   /* ---------- helpers ---------- */
@@ -437,7 +439,7 @@
     const pub = notices();
     return html`<div class="ci-page ci-home">
       <section class="ci-home-hero">
-        <img src=${heroImg("home")} alt="충남 대회 트랙을 표현한 일러스트" fetchpriority="high" />
+        <img src=${heroImg("home")} alt="충남 유니폼을 입은 인라인 선수들의 주행을 표현한 홍보 이미지" fetchpriority="high" />
         <${Header} onDark=${false} onMenu=${onMenu} />
         <div class="ci-home-copy">
           <h1>제1회 충청남도<br /><em>체육회장기</em></h1>
@@ -893,7 +895,7 @@
   }
   function About({ onMenu }) {
     return html`<div class="ci-page"><${SubHero} kind="plain" title="대회소개" subtitle=${meetTitle()} onMenu=${onMenu} />
-      <main class="ci-content"><section class="ci-info-card ci-about"><img src=${STORY_IMG} alt="충남 대회 트랙을 표현한 일러스트" /><h2>${meetTitle()}</h2><p>${site.campaign?.story || "충청남도 학생과 동호인이 함께하는 인라인스피드대회입니다. 출전 선수와 경기 순서, 경기 시작 시각은 공식 안내 후 공개합니다."}</p><dl><div><dt>대회명</dt><dd>${meetTitle()}</dd></div><div><dt>일정</dt><dd>${meetDate()}</dd></div><div><dt>장소</dt><dd>${meetVenue()}</dd></div><div><dt>주최·주관</dt><dd>${site.organizer?.host || "미정"}</dd></div><div><dt>후원</dt><dd>${site.organizer?.sponsors || "미정"}</dd></div></dl></section></main><${Footer} /></div>`;
+      <main class="ci-content"><section class="ci-info-card ci-about"><img src=${STORY_IMG} alt="충남 유니폼을 입은 인라인 선수들의 주행을 표현한 홍보 이미지" /><h2>${meetTitle()}</h2><p>${site.campaign?.story || "충청남도 학생과 동호인이 함께하는 인라인스피드대회입니다. 출전 선수와 경기 순서, 경기 시작 시각은 공식 안내 후 공개합니다."}</p><dl><div><dt>대회명</dt><dd>${meetTitle()}</dd></div><div><dt>일정</dt><dd>${meetDate()}</dd></div><div><dt>장소</dt><dd>${meetVenue()}</dd></div><div><dt>주최·주관</dt><dd>${site.organizer?.host || "미정"}</dd></div><div><dt>후원</dt><dd>${site.organizer?.sponsors || "미정"}</dd></div></dl></section></main><${Footer} /></div>`;
   }
   function NotFound({ onMenu }) {
     return html`<div class="ci-page"><${SubHero} kind="plain" title="정보를 찾을 수 없습니다" subtitle="" onMenu=${onMenu} />
