@@ -7,6 +7,7 @@
   "trailingSlash": true,
   "redirects": [
     { "source": "/", "destination": "/public/", "permanent": false },
+    { "source": "/web/:path*/", "destination": "/:path*/", "permanent": false },
     { "source": "/web/:path*", "destination": "/:path*", "permanent": false }
   ]
 }
