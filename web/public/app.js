@@ -47,21 +47,25 @@
   }
 
   /* ---------- assets ---------- */
-  // 천안의 선수 중심 구도와 기존 충남 캠페인의 실사풍을 따른 홍보 이미지.
-  const HOME_IMG = "assets/campaign/chungnam-athlete-home.png";
-  const RACE_IMG = "assets/campaign/chungnam-athlete-race.png";
+  // 각 메뉴에 맞는 별도 홍보 장면. 실제 경기장·선수 사진으로 오인하지 않도록 장식 이미지로 사용한다.
   const HERO = {
-    home: HOME_IMG, schedule: RACE_IMG, event: RACE_IMG, live: RACE_IMG,
+    home: "assets/campaign/chungnam-athlete-home.webp",
+    schedule: "assets/campaign/chungnam-athlete-race.webp",
+    event: "assets/mockup/heroClean-schedule.webp",
+    live: "assets/mockup/heroClean-live.webp",
     results: "assets/mockup/heroClean-results.webp",
-    athletes: "assets/mockup/heroClean-athletes.webp", athlete: HOME_IMG, plain: RACE_IMG,
-    guide: RACE_IMG,
+    athletes: "assets/mockup/heroClean-athletes.webp",
+    athlete: "assets/mockup/heroClean-athlete.webp",
+    notices: "assets/mockup/heroClean-plain.webp",
+    participation: "assets/campaign/chungnam-participation.webp",
+    meetRules: "assets/campaign/chungnam-meet-rules.webp",
+    raceGuide: "assets/campaign/chungnam-race-guide.webp",
+    guide: "assets/campaign/chungnam-directions.webp",
+    about: "assets/campaign/chungnam-about.webp",
+    plain: "assets/mockup/heroClean-plain.webp",
   };
   const heroImg = (k) => HERO[k] || HERO.plain;
-  // 제목 영역은 밝게 비우고, 화면별 선수 이미지를 사용한다.
-  const HEROCLEAN = {
-    schedule: RACE_IMG, results: HERO.results, athletes: HERO.athletes,
-    live: RACE_IMG, event: RACE_IMG, plain: RACE_IMG, guide: RACE_IMG,
-  };
+  const HEROCLEAN = HERO;
   const ICON_IMG = "assets/campaign/skater-icon.png";
   const STORY_IMG = "assets/mockup/story-photo.webp";
   const MEDAL = { g: "assets/mockup/medal-gold.png", s: "assets/mockup/medal-silver.png", b: "assets/mockup/medal-bronze.png" };
@@ -557,7 +561,7 @@
     const hasRecords = meetHasRecords();
     const nx = nextEvent();
     return html`<div class="ci-page">
-      <${SubHero} kind="event" title=${live ? twoTone("실시간", "경기 현황") : "경기 현황"} subtitle=${html`${meetTitle()}<br />${meetVenue()}${live || !isCurrentMeet() || !site.campaign?.timeTBD ? "" : " · 경기 시각 미정"}`} back=${fromHome ? "#home" : "#schedule"} backLabel=${fromHome ? "대회 홈" : "대회 일정"} crumb=${(fromHome ? "대회 홈" : "대회 일정") + " › 경기 상세"} onMenu=${onMenu} />
+      <${SubHero} kind=${fromHome ? "live" : "event"} title=${live ? twoTone("실시간", "경기 현황") : "경기 현황"} subtitle=${html`${meetTitle()}<br />${meetVenue()}${live || !isCurrentMeet() || !site.campaign?.timeTBD ? "" : " · 경기 시각 미정"}`} back=${fromHome ? "#home" : "#schedule"} backLabel=${fromHome ? "대회 홈" : "대회 일정"} crumb=${(fromHome ? "대회 홈" : "대회 일정") + " › 경기 상세"} onMenu=${onMenu} />
       <main class="ci-content">
         <${DataProvenance} />
         <section class="ci-event-card"><div class="ci-event-top">
@@ -771,19 +775,19 @@
    * ================================================================= */
   function Notices({ onMenu }) {
     const pub = notices();
-    return html`<div class="ci-page"><${SubHero} kind="plain" title="공지사항" subtitle="대회 운영 소식을 확인하세요." onMenu=${onMenu} />
+    return html`<div class="ci-page"><${SubHero} kind="notices" title="공지사항" subtitle="대회 운영 소식을 확인하세요." onMenu=${onMenu} />
       <main class="ci-content">${pub.length ? html`<div class="ci-notice-list boxed">${pub.map((n) => html`<${NoticeRow} key=${n.id} n=${n} tag=${n.isNew ? "중요" : "안내"} />`)}</div>` : html`<${Empty} h="등록된 공지가 없습니다" p="주최 측에서 공개한 공지는 이곳에 표시됩니다." />`}</main><${Footer} /></div>`;
   }
   function NoticeDetail({ id, onMenu }) {
     const n = notices().find((x) => String(x.id) === String(id));
     if (!n) return html`<${NotFound} onMenu=${onMenu} />`;
-    return html`<div class="ci-page"><${SubHero} kind="plain" title="공지사항" subtitle="" back="#notices" backLabel="공지 목록" onMenu=${onMenu} />
+    return html`<div class="ci-page"><${SubHero} kind="notices" title="공지사항" subtitle="" back="#notices" backLabel="공지 목록" onMenu=${onMenu} />
       <main class="ci-content"><article class="ci-article"><span class=${"ci-notice-tag " + (n.isNew ? "hot" : "")}>${n.isNew ? "중요" : "안내"}</span><h2>${n.title}</h2><time>${n.date || ""}</time><p>${n.body}</p></article></main><${Footer} /></div>`;
   }
   function Participation({ onMenu }) {
     const p = site.participation || {};
     const rows = [["대회 일정", meetDate()], ["대회 장소", meetVenue()], ["참가 자격", p.eligibility || "확인 후 안내합니다."], ["신청 기간", p.period || "확인 중"], ["신청 방법", p.instructions || "확인 중"], ["문의", p.contact || "확인 중"]];
-    return html`<div class="ci-page"><${SubHero} kind="plain" title="참가안내" subtitle="참가 자격·접수 일정·신청 방법" onMenu=${onMenu} />
+    return html`<div class="ci-page"><${SubHero} kind="participation" title="참가안내" subtitle="참가 자격·접수 일정·신청 방법" onMenu=${onMenu} />
       <main class="ci-content"><section class="ci-info-card ci-participation-card">
         <div class="ci-participation-status"><span class="ci-status-pill closed">${p.status === "closed" ? "접수 종료" : "접수 안내"}</span><div><h2>${p.statusTitle || "참가신청 안내"}</h2><p>${p.statusBody || "공식 접수처를 확인해 주세요."}</p></div></div>
         <dl class="ci-participation-facts">${rows.map(([t, d]) => html`<div key=${t}><dt>${t}</dt><dd>${d}</dd></div>`)}</dl>
@@ -792,7 +796,7 @@
   function MeetRules({ onMenu }) {
     const g = site.meetGuide || {};
     const facts = g.facts || [["대회", meetTitle()], ["일시", meetDate()], ["장소", meetVenue()]];
-    return html`<div class="ci-page"><${SubHero} kind="plain" title="대회요강" subtitle=${meetTitle()} onMenu=${onMenu} />
+    return html`<div class="ci-page"><${SubHero} kind="meetRules" title="대회요강" subtitle=${meetTitle()} onMenu=${onMenu} />
       <main class="ci-content ci-rules-page">
         <section class="ci-info-card"><h2>대회 개요</h2><dl>${facts.map(([label, value]) => html`<div key=${label}><dt>${label}</dt><dd>${value}</dd></div>`)}</dl></section>
         ${(g.eventTable || []).length ? html`<section class="ci-info-card"><h2>경기 종목</h2><div class="ci-rules-table"><table><thead><tr><th>부별</th><th>학년</th><th>성별</th><th>종목</th></tr></thead><tbody>${g.eventTable.map(([div, grade, gender, dist], i) => html`<tr key=${i}><th scope="row">${div}</th><td>${grade}</td><td>${gender}</td><td>${dist}</td></tr>`)}</tbody></table></div>${g.eventTableNote ? html`<p>${g.eventTableNote}</p>` : null}</section>` : null}
@@ -814,7 +818,7 @@
       ["이의", "15분 이내 서면 신청", "판정에 이의가 있으면 15분 이내에 대표자 명의로 서면 신청합니다. 재판결정에는 이의를 제기할 수 없습니다."],
       ["계주", "1,600m 계주", "초등부 혼성계주·중등부 계주·고등부 계주는 1,600m입니다. 교대 방법은 현장 심판 안내를 따르세요."],
     ];
-    return html`<div class="ci-page"><${SubHero} kind="plain" title="시합 규칙 쉽게보기" subtitle="처음 출전하는 선수와 보호자를 위한 안내" onMenu=${onMenu} />
+    return html`<div class="ci-page"><${SubHero} kind="raceGuide" title="시합 규칙 쉽게보기" subtitle="처음 출전하는 선수와 보호자를 위한 안내" onMenu=${onMenu} />
       <main class="ci-content ci-rules-page"><p class="ci-rules-note">이 안내는 ${meetTitle()} 참가요강과 스피드 경기규정을 쉽게 설명한 것입니다. 경기규칙은 대한롤러스포츠연맹 규칙에 준하며, 현장 심판의 지시와 대회 운영 안내를 따르세요.</p>
         ${rules.map(([step, title, body], i) => html`<section class="ci-info-card ci-rule-step" key=${step}><span>${String(i + 1).padStart(2, "0")} · ${step}</span><h2>${title}</h2><p>${body}</p></section>`)}
         <section class="ci-info-card ci-code-guide"><h2>경기 결과 코드</h2><p>이 사이트에서 사용하는 표기 중 고고인라인 용어 안내에 설명된 코드입니다.</p><dl>
@@ -894,7 +898,7 @@
       </main><${Footer} /></div>`;
   }
   function About({ onMenu }) {
-    return html`<div class="ci-page"><${SubHero} kind="plain" title="대회소개" subtitle=${meetTitle()} onMenu=${onMenu} />
+    return html`<div class="ci-page"><${SubHero} kind="about" title="대회소개" subtitle=${meetTitle()} onMenu=${onMenu} />
       <main class="ci-content"><section class="ci-info-card ci-about"><img src=${STORY_IMG} alt="충남 유니폼을 입은 인라인 선수들의 주행을 표현한 홍보 이미지" /><h2>${meetTitle()}</h2><p>${site.campaign?.story || "충청남도 학생과 동호인이 함께하는 인라인스피드대회입니다. 출전 선수와 경기 순서, 경기 시작 시각은 공식 안내 후 공개합니다."}</p><dl><div><dt>대회명</dt><dd>${meetTitle()}</dd></div><div><dt>일정</dt><dd>${meetDate()}</dd></div><div><dt>장소</dt><dd>${meetVenue()}</dd></div><div><dt>주최·주관</dt><dd>${site.organizer?.host || "미정"}</dd></div><div><dt>후원</dt><dd>${site.organizer?.sponsors || "미정"}</dd></div></dl></section></main><${Footer} /></div>`;
   }
   function NotFound({ onMenu }) {
