@@ -20,6 +20,12 @@
   const root = document.getElementById("root");
   const announce = document.getElementById("announcement");
 
+  // 이전에 공유된 #judge 주소도 독립 심판 기록 화면으로 연다.
+  if (location.hash === "#judge") {
+    location.replace(new URL("../judge/", location.href).href);
+    return;
+  }
+
   const data = window.MEET_DATA;
   const site = window.CHUNGNAM_PUBLIC || {};
   if (!data || !window.ScoreboardSource || !window.MeetCalc) {
@@ -321,7 +327,7 @@
       ["#home", "홈", "home"], ["#schedule", "대회 일정", "calendar"], ["#live", "경기 현황", "live"],
       ["#results", "경기 결과", "trophy"], ["#athletes", "선수 찾기", "users"], ["#notices", "공지사항", "info"],
       ["#guide", "오시는 길", "pin"], ["#participation", "참가안내", "users"], ["#meet-rules", "대회요강", "clipboard"], ["#race-guide", "시합 규칙 쉽게보기", "info"],
-      ["#judge", "심판 기록", "clipboard"],
+      ["../judge/", "심판 기록", "clipboard"],
     ];
     return html`<${React.Fragment}>
       <div class=${"ci-drawer-bg" + (open ? " open" : "")} onClick=${onClose} aria-hidden="true"></div>
@@ -829,12 +835,6 @@
         <section class="ci-info-card"><h2>근거 자료</h2><p>제공된 ${meetTitle()} 참가요강 · <a href="https://koreaskate.or.kr/sports/speed/" target="_blank" rel="noopener noreferrer">대한롤러스포츠연맹 스피드 안내</a></p></section>
       </main><${Footer} /></div>`;
   }
-  function JudgeRecords({ onMenu }) {
-    return html`<div class="ci-page ci-judge-page"><${Header} onDark=${false} onMenu=${onMenu} />
-      <main class="ci-judge-main"><h1>심판 기록</h1><p>팀에 공유할 기록은 심판 계정으로 로그인한 뒤 입력하세요. ‘이 기기에만 저장’은 다른 기기에 전송되지 않습니다.</p>
-        <iframe class="ci-judge-frame" title="심판 기록 입력" src="../judge/?embedded=1"></iframe>
-      </main></div>`;
-  }
   // 오시는 길: Leaflet + OpenStreetMap(키 불필요)을 필요할 때만 불러온다. 실패하면 지도 앱 링크만 남는다.
   const LEAFLET = "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/";
   let leafletLoading = null;
@@ -948,7 +948,13 @@
     }
 
     useEffect(() => {
-      const on = () => { setRoute(parseHash()); setMenuOpen(false); window.scrollTo({ top: 0 }); };
+      const on = () => {
+        if (location.hash === "#judge") {
+          location.replace(new URL("../judge/", location.href).href);
+          return;
+        }
+        setRoute(parseHash()); setMenuOpen(false); window.scrollTo({ top: 0 });
+      };
       window.addEventListener("hashchange", on);
       return () => window.removeEventListener("hashchange", on);
     }, []);
@@ -999,7 +1005,6 @@
       case "participation": screen = html`<${Participation} onMenu=${onMenu} />`; break;
       case "meet-rules": screen = html`<${MeetRules} onMenu=${onMenu} />`; break;
       case "race-guide": screen = html`<${RaceGuide} onMenu=${onMenu} />`; break;
-      case "judge": screen = html`<${JudgeRecords} onMenu=${onMenu} />`; break;
       case "guide": screen = html`<${Guide} onMenu=${onMenu} />`; break;
       case "about": screen = html`<${About} onMenu=${onMenu} />`; break;
       case "home": screen = html`<${Home} onMenu=${onMenu} />`; break;
