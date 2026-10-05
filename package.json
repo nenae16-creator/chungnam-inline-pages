@@ -1,0 +1,6 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": { "check:auth": "node scripts/check-judge-auth.mjs" },
+  "dependencies": { "@vercel/functions": "3.9.11" }
+}

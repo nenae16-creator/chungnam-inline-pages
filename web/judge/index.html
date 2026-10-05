@@ -8,12 +8,13 @@
     <meta name="theme-color" content="#082d67" />
     <meta name="description" content="인라인 스피드 대회 심판 기록 입력" />
     <title>심판 기록 입력</title>
+    <script src="../shared/judge-access.js?v=auth1"></script>
     <!-- 인라인 파비콘. 외부 요청을 만들지 않는다. -->
     <link rel="icon" href="mark.png" type="image/png" />
     <!-- 외부 폰트·CDN 없음. 회선이 끊긴 경기장에서도 그대로 뜬다. -->
     <!-- theme.css 는 로컬 파일이라 외부 요청을 만들지 않는다. -->
     <link rel="stylesheet" href="../shared/theme.css" />
-    <link rel="stylesheet" href="judge.css?v=h12" />
+    <link rel="stylesheet" href="judge.css?v=h13" />
   </head>
   <body>
     <script>
@@ -31,6 +32,7 @@
         </button>
         <nav class="more-menu" id="more-menu" aria-label="추가 메뉴" hidden>
           <a href="../public/#home">대회 홈</a>
+          <form action="/judge-auth/logout/" method="post"><button type="submit">로그아웃</button></form>
           <a href="../app/?view=pair">경기 편성</a>
           <a href="../app/?view=rank">기록·순위</a>
           <a href="../app/?view=athletes">선수 관리</a>

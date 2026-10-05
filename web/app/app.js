@@ -3,11 +3,9 @@
   const DATA = window.MEET_DATA;
   const STORE_KEY = "chungnam_inline_2026_v1";
   const PHOTO_KEY = "chungnam_inline_2026_photos";
-  const PIN_KEY = "chungnam_inline_2026_auth";
   const ROOM_KEY = "chungnam_inline_2026_room";
   const ROLE_KEY = "chungnam_inline_2026_role";
   const PEER_PREFIX = "chungnam2026-";
-  const PIN_STORE = "chungnam_inline_2026_pin";
   const BC_ID = "bc-" + Math.random().toString(16).slice(2);
   let roomId = (new URLSearchParams(location.search).get("room") || localStorage.getItem(ROOM_KEY) || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
   let syncRole = new URLSearchParams(location.search).get("role") || localStorage.getItem(ROLE_KEY) || "";
@@ -24,10 +22,6 @@
   let bridge = null;         // ChungnamSyncBridge. 서버 설정이 없으면 끝까지 null 이다.
   let pendingRender = false; // 입력 중이라 미뤄 둔 원격 반영이 있는지
 
-  function getJudgePin() {
-    return localStorage.getItem(PIN_STORE) || DATA.meta.judgePin || "2026";
-  }
-
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
@@ -38,7 +32,6 @@
   const allowedViews = ["board", "pair", "rank", "champ", "medals", "athletes", "operators", "gallery", "sync", "judge"];
   let view = allowedViews.includes(requestedView) ? requestedView : "board";
   let selectedEvent = 1;
-  let judgeAuthed = sessionStorage.getItem(PIN_KEY) === "1";
 
   function defaultState() {
     const results = {};
@@ -224,11 +217,6 @@
       toast("실시간 라이브러리를 불러오지 못했습니다. 인터넷을 확인하세요");
       return;
     }
-    if (!judgeAuthed) {
-      setView("judge");
-      toast("심판실 입장 후 호스트를 시작하세요");
-      return;
-    }
     if (!roomId) setRoom(makeRoomCode(), "host");
     else setRoom(roomId, "host");
     syncMeta.status = "wait";
@@ -366,7 +354,6 @@
   }
 
   function fillDemo() {
-    if (!judgeAuthed) return toast("심판실 입장 후 사용할 수 있습니다");
     if (!confirm("연습용 샘플 기록을 넣을까요? 이미 입력한 값은 덮어씁니다.")) return;
     batching = true;
     const demoChanges = [];
@@ -1450,15 +1437,6 @@
   }
 
   function viewJudge() {
-    if (!judgeAuthed) {
-      return `<div class="card" style="max-width:420px;margin:40px auto">
-        <div class="kicker">JUDGE ROOM</div>
-        <h2>심판실 입장</h2>
-        <p class="muted">기록 입력·엑셀 업로드는 심판만 가능합니다. 기본 암호는 2026이며 입장 후 바꿀 수 있습니다.</p>
-        <input class="search" id="pin" type="password" placeholder="암호 (기본 2026)">
-        <button class="btn primary" id="pin-go">입장</button>
-      </div>`;
-    }
     const ev = evById[selectedEvent];
     const heats = effectiveHeats(ev);
     const list = DATA.events
@@ -1513,8 +1491,6 @@
         <button class="btn" id="demo-fill">샘플 기록 넣기</button>
         <button class="btn" id="auto-rank">조별 1·2·3등 자동</button>
         <button class="btn" id="reset-res">이 기기 화면 다시 받기</button>
-        <input id="new-pin" placeholder="새 암호" style="width:110px;padding:8px;border-radius:10px;border:1px solid var(--line);background:#071525;color:#fff">
-        <button class="btn" id="set-pin">암호 변경</button>
       </div>
       <div class="drop" id="drop">엑셀 파일을 이곳에 놓아도 됩니다. 노란 칸(기록/순위/상태/번호)만 읽습니다.</div>
       <div class="two" style="margin-top:14px">
@@ -1564,16 +1540,6 @@
         saveState();
         if (bridge) bridge.publishMeet("qualifyCount", state.qualifyCount, beforeQc);
         render();
-      });
-    const pinGo = $("#pin-go");
-    if (pinGo)
-      pinGo.addEventListener("click", () => {
-        const v = $("#pin").value.trim();
-        if (v === getJudgePin()) {
-          judgeAuthed = true;
-          sessionStorage.setItem(PIN_KEY, "1");
-          render();
-        } else toast("암호가 올바르지 않습니다");
       });
     const sf = $("#sync-flush");
     if (sf)
@@ -1708,14 +1674,6 @@
       sp.addEventListener("change", () => {
         sharePhotos = !!sp.checked;
         if (syncRole === "host") broadcastLive();
-      });
-    const setPin = $("#set-pin");
-    if (setPin)
-      setPin.addEventListener("click", () => {
-        const v = ($("#new-pin") && $("#new-pin").value.trim()) || "";
-        if (v.length < 4) return toast("암호는 4자 이상으로 하세요");
-        localStorage.setItem(PIN_STORE, v);
-        toast("심판 암호를 바꿨습니다");
       });
     $$("[data-go-judge]").forEach((b) => b.addEventListener("click", () => setView("judge")));
     $$("[data-heat]").forEach((b) =>

@@ -8,6 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="충남인라인">
   <title>제1회 충청남도체육회장기 인라인스피드대회</title>
+  <script src="../shared/judge-access.js?v=auth1"></script>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -45,6 +46,7 @@
       <button data-view="gallery">대회 사진</button>
       <button data-view="sync">실시간 동기화</button>
       <button data-view="judge">통합 기록실</button>
+      <form action="/judge-auth/logout/" method="post"><button type="submit">로그아웃</button></form>
     </nav>
   </header>
   <main class="wrap" id="view">
@@ -70,7 +72,7 @@
   <link rel="stylesheet" href="../gallery.css">
   <script src="../gallery-cloud.js"></script>
   <script src="../gallery.js"></script>
-  <script src="app.js?v=h5"></script>
+  <script src="app.js?v=h6"></script>
   <script>
     window.addEventListener("error", function (e) {
       var v = document.getElementById("view");

@@ -1051,7 +1051,9 @@ body * { min-width: 0; }
   border-radius: 14px; background: #fff;
   box-shadow: 0 20px 44px rgba(4, 24, 58, 0.3);
 }
-.more-menu a {
+.more-menu form { margin: 0; }
+.more-menu form button { width: 100%; border: 0; background: transparent; text-align: left; cursor: pointer; }
+.more-menu a, .more-menu form button {
   display: flex; align-items: center; min-height: var(--tap);
   padding: 0 12px; border-radius: 9px;
   color: var(--ink); font-size: 14px; font-weight: 700; text-decoration: none;
