@@ -861,11 +861,6 @@
     return html`<div class="ci-page"><${SubHero} kind="raceGuide" title="시합 규칙 쉽게보기" subtitle="처음 출전하는 선수와 보호자를 위한 안내" onMenu=${onMenu} />
       <main class="ci-content ci-rules-page"><p class="ci-rules-note">이 안내는 ${meetTitle()} 참가요강과 스피드 경기규정을 쉽게 설명한 것입니다. 경기규칙은 대한롤러스포츠연맹 규칙에 준하며, 현장 심판의 지시와 대회 운영 안내를 따르세요.</p>
         ${rules.map(([step, title, body], i) => html`<section class="ci-info-card ci-rule-step" key=${step}><span>${String(i + 1).padStart(2, "0")} · ${step}</span><h2>${title}</h2><p>${body}</p></section>`)}
-        <section class="ci-info-card ci-code-guide"><h2>경기 결과 코드</h2><p>이 사이트에서 사용하는 표기 중 고고인라인 용어 안내에 설명된 코드입니다.</p><dl>
-          <div><dt>DNS · Did Not Start</dt><dd>출발하지 않음</dd></div>
-          <div><dt>DNF · Did Not Finish</dt><dd>출발했으나 완주하지 못함</dd></div>
-          <div><dt>DQ · Disqualified</dt><dd>실격 처리</dd></div>
-        </dl><p class="ci-code-source">약어 설명은 <a href="https://gogoinline.com/results/jemnan-inline-rules" target="_blank" rel="noopener noreferrer">고고인라인 경기 용어 안내</a>를 참고해 이 대회 화면에 맞게 정리했습니다. REL 등 다른 표기는 이 대회 심판에게 뜻을 확인하세요. 기록·순위와 판정은 대회요강 및 현장 심판 기록을 따릅니다.</p></section>
         <section class="ci-info-card"><h2>근거 자료</h2><p>제공된 ${meetTitle()} 참가요강 · <a href="https://koreaskate.or.kr/sports/speed/" target="_blank" rel="noopener noreferrer">대한롤러스포츠연맹 스피드 안내</a></p></section>
       </main><${Footer} /></div>`;
   }
