@@ -20,11 +20,42 @@
   const root = document.getElementById("root");
   const announce = document.getElementById("announcement");
 
+  function openJudge(replace = false) {
+    const url = new URL("../judge/", location.href).href;
+    if (replace) location.replace(url);
+    else location.assign(url);
+  }
+
   // 이전에 공유된 #judge 주소도 독립 심판 기록 화면으로 연다.
   if (location.hash === "#judge") {
-    location.replace(new URL("../judge/", location.href).href);
+    openJudge(true);
     return;
   }
+
+  // 읽기 전용 공개 화면은 배포 후에도 열린 탭이 이전 메뉴·이미지를 유지하지 않도록 갱신한다.
+  const publicVersion = document.querySelector('meta[name="app-version"]')?.content;
+  let checkingVersion = false;
+  async function checkPublicVersion() {
+    if (document.hidden || !publicVersion || checkingVersion) return;
+    checkingVersion = true;
+    try {
+      const response = await fetch(new URL("release.json", location.href), { cache: "no-store" });
+      if (!response.ok) return;
+      const release = await response.json();
+      if (typeof release.version !== "string" || release.version === publicVersion) return;
+      const url = new URL(location.href);
+      if (url.searchParams.get("v") === release.version) return;
+      url.searchParams.set("v", release.version);
+      location.replace(url.href);
+    } catch (_) { /* 연결이 끊겨도 현재 대회 화면은 계속 사용할 수 있다. */ }
+    finally { checkingVersion = false; }
+  }
+  window.addEventListener("pageshow", () => {
+    if (location.hash === "#judge") openJudge(true);
+    else checkPublicVersion();
+  });
+  document.addEventListener("visibilitychange", checkPublicVersion);
+  window.setInterval(checkPublicVersion, 60000);
 
   const data = window.MEET_DATA;
   const site = window.CHUNGNAM_PUBLIC || {};
@@ -336,7 +367,10 @@
           <div><strong>대회 메뉴</strong><small>CHUNGNAM INLINE ${year()}</small></div>
           <button type="button" aria-label="메뉴 닫기" onClick=${onClose}><${Ic} n="close" /></button>
         </div>
-        <nav>${links.map(([href, l, ic]) => html`<a key=${href} href=${href} onClick=${onClose}><span class="ci-drawer-ic"><${Ic} n=${ic} /></span><span>${l}</span><${Ic} n="chevron" cls="go" /></a>`)}</nav>
+        <nav>${links.map(([href, l, ic]) => html`<a key=${href} href=${href} onClick=${(event) => {
+          onClose();
+          if (href === "../judge/") { event.preventDefault(); openJudge(); }
+        }}><span class="ci-drawer-ic"><${Ic} n=${ic} /></span><span>${l}</span><${Ic} n="chevron" cls="go" /></a>`)}</nav>
         ${(window.MEET_LIST && window.MEET_LIST.length > 1) ? html`<div class="ci-drawer-meet">
           <label for="ci-meet-select">대회 기록 선택</label>
           <div class="ci-select">
@@ -950,7 +984,7 @@
     useEffect(() => {
       const on = () => {
         if (location.hash === "#judge") {
-          location.replace(new URL("../judge/", location.href).href);
+          openJudge(true);
           return;
         }
         setRoute(parseHash()); setMenuOpen(false); window.scrollTo({ top: 0 });

@@ -1305,7 +1305,6 @@ body.is-embedded .screen { padding-top: 10px; }
    9열 표(≥940px)는 위쪽 기본 규칙이 이미 처리한다. 여기서는 위쪽 카드 폭만 키운다. */
 @media (min-width: 760px) {
   .app-top .topbar, .hero, .seg-tabs { max-width: 900px; margin-left: auto; margin-right: auto; }
-  .seg-tabs { margin-top: -20px; }
   .screen { max-width: 900px; }
 }
 @media (min-width: 940px) {
