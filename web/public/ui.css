@@ -802,8 +802,8 @@ body[data-route="race-guide"] .ci-sub-sub { max-width: none; }
 
 /* 사유 코드는 짧은 약어와 설명을 나누고, 긴 영문은 모바일에서 줄바꿈한다. */
 .ci-reason-codes { margin: 0; }
-.ci-reason-codes > div { display: grid; grid-template-columns: 48px minmax(0, 1fr); padding: 12px 0; border-bottom: 1px solid #e4ebf5; }
-.ci-reason-codes > div:last-child { border-bottom: 0; }
+.ci-info-card .ci-reason-codes > div { display: grid; grid-template-columns: 48px minmax(0, 1fr); padding: 12px 0; border-top: 0; border-bottom: 1px solid #e4ebf5; }
+.ci-info-card .ci-reason-codes > div:last-child { border-bottom: 0; }
 .ci-reason-codes dt { color: var(--brand); font-size: 18px; font-weight: 800; }
 .ci-reason-codes dd { min-width: 0; margin: 0; text-align: left; font-weight: 400; line-height: 1.6; overflow-wrap: anywhere; }
 .ci-reason-codes dd strong, .ci-reason-codes dd span { display: block; }
